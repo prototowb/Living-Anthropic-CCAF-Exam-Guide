@@ -1,0 +1,112 @@
+@use '../tokens' as *;
+
+.quiz-question {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+
+  &__context {
+    background: var(--color-surface);
+    border-left: 3px solid var(--color-accent);
+    padding: $space-3 $space-4;
+    border-radius: 0 $radius-sm $radius-sm 0;
+    color: var(--color-text-muted);
+    font-size: 13px;
+    line-height: 1.55;
+  }
+
+  &__prompt {
+    font-size: 17px;
+    line-height: 1.55;
+    color: var(--color-text);
+    white-space: pre-wrap;
+  }
+
+  &__options {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+  }
+
+  &__option {
+    text-align: left;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-sm;
+    padding: $space-3 $space-4;
+    color: var(--color-text);
+    cursor: pointer;
+    transition: all 140ms ease;
+    display: flex;
+    gap: $space-3;
+    align-items: flex-start;
+    font-size: 14px;
+    line-height: 1.5;
+
+    &:hover:not(:disabled) {
+      border-color: var(--color-accent);
+    }
+
+    &--correct {
+      border-color: #2f9d6a;
+      background: rgba(47, 157, 106, 0.1);
+    }
+
+    &--incorrect {
+      border-color: #d4504a;
+      background: rgba(212, 80, 74, 0.1);
+    }
+
+    &--selected {
+      border-color: var(--color-accent);
+    }
+
+    &:disabled {
+      cursor: default;
+    }
+  }
+
+  &__option-letter {
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
+    border-radius: 50%;
+    background: var(--color-surface-2);
+    display: grid;
+    place-items: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--color-text-muted);
+  }
+
+  &__explanation {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-left: 3px solid #2f9d6a;
+    border-radius: $radius-sm;
+    padding: $space-4;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  &__wrong-explanations {
+    margin-top: $space-3;
+    padding-top: $space-3;
+    border-top: 1px dashed var(--color-border);
+    font-size: 13px;
+    color: var(--color-text-muted);
+
+    dt {
+      font-weight: 600;
+      color: var(--color-text);
+      margin-top: $space-2;
+    }
+  }
+
+  &__footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: $space-3;
+  }
+}

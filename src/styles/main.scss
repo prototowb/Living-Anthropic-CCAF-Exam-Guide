@@ -1,0 +1,20 @@
+// All @use rules must come before any other at-rules (including @tailwind).
+@use 'tokens' as *;
+@use 'reset';
+@use 'components/app-shell';
+@use 'components/btn';
+@use 'components/card';
+@use 'components/code-block';
+@use 'components/quiz-question';
+@use 'components/chat';
+@use 'components/lesson';
+@use 'components/badge';
+@use 'components/progress-bar';
+@use 'components/anti-pattern';
+@use 'components/sandbox';
+@use 'components/related-chips';
+@use 'components/mock-exam';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

@@ -1,0 +1,322 @@
+@use '../tokens' as *;
+
+.sandbox {
+  background: linear-gradient(180deg, rgba(232, 140, 48, 0.04) 0%, transparent 100%);
+  border: 1px solid var(--color-border);
+  border-top: 2px solid var(--color-accent);
+  border-radius: $radius-md;
+  padding: $space-5;
+  margin-top: $space-5;
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: $space-3;
+  }
+
+  &__eyebrow {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-accent);
+    font-weight: 700;
+  }
+
+  &__title {
+    font-size: 16px;
+    font-weight: 600;
+    margin: $space-1 0 0;
+  }
+
+  &__hint {
+    color: var(--color-text-muted);
+    font-size: 13px;
+    line-height: 1.55;
+    margin: 0;
+  }
+
+  &__controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-4;
+  }
+
+  &__control {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+    font-size: 12px;
+    color: var(--color-text-muted);
+
+    span {
+      letter-spacing: 0.02em;
+    }
+  }
+
+  &__form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: $space-3;
+  }
+
+  &__input,
+  &__select {
+    background: var(--color-surface-2);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-sm;
+    padding: 6px 10px;
+    color: var(--color-text);
+    font: inherit;
+    font-size: 13px;
+    outline: none;
+
+    &:focus {
+      border-color: var(--color-accent);
+    }
+  }
+
+  &__textarea {
+    flex: 1;
+    background: var(--color-surface-2);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-sm;
+    padding: $space-3;
+    color: var(--color-text);
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 12px;
+    resize: vertical;
+    outline: none;
+
+    &:focus {
+      border-color: var(--color-accent);
+    }
+  }
+
+  &__composer {
+    display: flex;
+    gap: $space-3;
+
+    .sandbox__textarea {
+      flex: 1;
+    }
+  }
+
+  &__presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-2;
+    align-items: center;
+  }
+
+  &__panes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: $space-3;
+  }
+
+  &__pane {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+    min-width: 0;
+  }
+
+  &__pane-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-muted);
+  }
+
+  &__error {
+    padding: $space-2 $space-3;
+    border-radius: $radius-sm;
+    background: rgba(212, 80, 74, 0.1);
+    color: #f08680;
+    font-size: 13px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  &__result {
+    display: flex;
+    flex-direction: column;
+    gap: $space-3;
+  }
+
+  &__pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-2;
+  }
+
+  &__rationale {
+    font-size: 13px;
+    line-height: 1.55;
+    margin: 0;
+    color: var(--color-text);
+  }
+
+  &__verdict {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: $space-3;
+    padding: $space-3 $space-4;
+    background: var(--color-surface-2);
+    border-radius: $radius-sm;
+    border: 1px solid var(--color-border);
+  }
+
+  &__verdict-text {
+    font-size: 13px;
+    color: var(--color-text);
+    flex: 1;
+    line-height: 1.5;
+  }
+
+  &__details {
+    summary {
+      cursor: pointer;
+      color: var(--color-text-muted);
+      font-size: 13px;
+      padding: $space-2 0;
+
+      &:hover {
+        color: var(--color-text);
+      }
+    }
+  }
+
+  &__fewshot-list {
+    margin: $space-3 0 0;
+    padding-left: $space-4;
+    font-size: 13px;
+    color: var(--color-text-muted);
+
+    li {
+      margin-bottom: $space-2;
+    }
+  }
+
+  &__fewshot-rationale {
+    color: var(--color-text-muted);
+    font-style: italic;
+    margin-top: 2px;
+  }
+
+  &__reply {
+    margin-top: $space-3;
+    padding: $space-3;
+    background: var(--color-surface-2);
+    border-radius: $radius-sm;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    color: var(--color-text);
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  &__diff-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+
+    th,
+    td {
+      text-align: left;
+      padding: $space-2 $space-3;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    th {
+      font-weight: 600;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.05em;
+    }
+  }
+}
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  padding: $space-3;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: $radius-sm;
+
+  &__row {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    align-items: center;
+    gap: $space-3;
+    font-size: 12px;
+
+    &--coordinator {
+      font-weight: 600;
+      color: var(--color-accent);
+    }
+  }
+
+  &__name {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--color-text-muted);
+  }
+
+  &--coordinator &__name {
+    color: var(--color-accent);
+  }
+
+  &__bar-track {
+    background: var(--color-surface-2);
+    border-radius: 4px;
+    height: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  &__bar {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding: 0 $space-3;
+    font-size: 11px;
+    color: #0e121b;
+    font-weight: 600;
+    white-space: nowrap;
+    border-radius: 4px;
+    transition: width 200ms ease;
+  }
+
+  &__bar--coordinator {
+    background: linear-gradient(90deg, var(--color-accent), #f5b266);
+  }
+
+  &__bar--spoke {
+    background: linear-gradient(90deg, #2f9d6a, #6fd6a0);
+  }
+
+  &__tools {
+    font-weight: 400;
+    color: rgba(14, 18, 27, 0.7);
+    margin-left: $space-1;
+  }
+}
+
+@media (max-width: 760px) {
+  .sandbox__panes {
+    grid-template-columns: 1fr;
+  }
+
+  .timeline__row {
+    grid-template-columns: 100px 1fr;
+  }
+}

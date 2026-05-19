@@ -1,0 +1,105 @@
+@use '../tokens' as *;
+
+.app-shell {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  min-height: 100vh;
+
+  &__sidebar {
+    background: var(--color-surface);
+    border-right: 1px solid var(--color-border);
+    padding: $space-5 $space-4;
+    display: flex;
+    flex-direction: column;
+    gap: $space-5;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  &__brand {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--color-text);
+  }
+
+  &__brand-mark {
+    width: 32px;
+    height: 32px;
+    border-radius: $radius-sm;
+    background: linear-gradient(135deg, var(--domain-ci), var(--domain-support));
+    display: grid;
+    place-items: center;
+    color: white;
+    font-weight: 800;
+  }
+
+  &__nav {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+  }
+
+  &__nav-section {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-muted);
+    padding: $space-3 $space-3 $space-1;
+  }
+
+  &__nav-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: $space-2 $space-3;
+    border-radius: $radius-sm;
+    color: var(--color-text-muted);
+    font-size: 14px;
+    transition: all 120ms ease;
+
+    &:hover {
+      background: var(--color-surface-2);
+      color: var(--color-text);
+    }
+
+    &--active {
+      background: var(--color-surface-2);
+      color: var(--color-text);
+      box-shadow: inset 3px 0 0 var(--color-accent);
+    }
+  }
+
+  &__main {
+    padding: $space-6 $space-7;
+    max-width: 1100px;
+    width: 100%;
+  }
+
+  &__footer {
+    margin-top: auto;
+    padding-top: $space-4;
+    font-size: 12px;
+    color: var(--color-text-muted);
+    border-top: 1px solid var(--color-border);
+  }
+}
+
+@media (max-width: 880px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+
+    &__sidebar {
+      position: relative;
+      height: auto;
+    }
+
+    &__main {
+      padding: $space-5 $space-4;
+    }
+  }
+}

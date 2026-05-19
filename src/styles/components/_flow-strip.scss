@@ -1,0 +1,269 @@
+@use '../tokens' as *;
+
+.flow-strip {
+  margin-top: $space-5;
+  padding: $space-4 $space-5;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left: 3px solid #2f9d6a;
+  border-radius: $radius-md;
+
+  &__label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 700;
+    color: #8edcb6;
+    margin-bottom: $space-2;
+  }
+
+  &__title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text);
+    margin: 0 0 $space-3;
+  }
+
+  &__section {
+    & + & {
+      margin-top: $space-4;
+      padding-top: $space-4;
+      border-top: 1px dashed var(--color-border);
+    }
+  }
+
+  &__section-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
+    margin-bottom: $space-2;
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+  }
+
+  &__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: $space-2;
+    font-size: 13px;
+  }
+
+  &__arrow {
+    color: var(--color-text-muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  &__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-1;
+    padding: 3px 10px;
+    background: var(--color-surface-2);
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    color: var(--color-text);
+    font-size: 12px;
+    transition: all 140ms ease;
+
+    &:hover {
+      border-color: #2f9d6a;
+      transform: translateY(-1px);
+    }
+  }
+
+  &__role {
+    color: var(--color-text-muted);
+    font-style: italic;
+    font-size: 12px;
+  }
+
+  &__flow-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-1;
+    padding: 4px 12px;
+    background: rgba(47, 157, 106, 0.12);
+    border: 1px solid rgba(47, 157, 106, 0.5);
+    border-radius: $radius-sm;
+    color: #8edcb6;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 140ms ease;
+
+    &:hover {
+      background: rgba(47, 157, 106, 0.2);
+      transform: translateY(-1px);
+    }
+
+    & small {
+      font-weight: 400;
+      color: var(--color-text-muted);
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+  }
+}
+
+.atlas {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+
+  &__controls {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-md;
+    padding: $space-4;
+  }
+
+  &__legend-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-muted);
+    margin-bottom: $space-2;
+  }
+
+  &__flow-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-2;
+    align-items: center;
+  }
+
+  &__flow-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-1;
+    padding: 4px 12px;
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    color: var(--color-text-muted);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 140ms ease;
+
+    &:hover {
+      color: var(--color-text);
+      border-color: var(--color-text-muted);
+    }
+
+    &--active {
+      background: #2f9d6a;
+      border-color: #2f9d6a;
+      color: #0e121b;
+      font-weight: 600;
+    }
+  }
+
+  &__graph {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-md;
+    padding: $space-4;
+    overflow-x: auto;
+  }
+
+  &__step-pane {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-left: 3px solid var(--color-accent);
+    border-radius: $radius-md;
+    padding: $space-4 $space-5;
+  }
+
+  &__step-counter {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--color-accent);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+}
+
+.flow-graph {
+  &__column-header {
+    fill: var(--color-text-muted);
+    font-size: 11px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  &__column-divider {
+    stroke: var(--color-border);
+    stroke-width: 1;
+    stroke-dasharray: 2 4;
+  }
+
+  &__node-rect {
+    stroke-width: 1.5;
+    transition: all 200ms ease;
+
+    &--dimmed {
+      opacity: 0.18;
+    }
+  }
+
+  &__node-label {
+    fill: var(--color-text);
+    font-size: 11px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    pointer-events: none;
+
+    &--dimmed {
+      opacity: 0.3;
+    }
+  }
+
+  &__node-task {
+    fill: var(--color-text-muted);
+    font-size: 9px;
+    font-family: 'JetBrains Mono', monospace;
+    pointer-events: none;
+
+    &--dimmed {
+      opacity: 0.3;
+    }
+  }
+
+  &__node-step {
+    font-weight: 700;
+    font-size: 12px;
+    text-anchor: middle;
+    dominant-baseline: central;
+    fill: #0e121b;
+    pointer-events: none;
+  }
+
+  &__edge {
+    fill: none;
+    stroke: #2f9d6a;
+    stroke-width: 2;
+    marker-end: url(#flow-graph-arrow);
+    opacity: 0;
+    transition: opacity 200ms ease;
+
+    &--active {
+      opacity: 0.9;
+    }
+  }
+
+  &__node-link {
+    cursor: pointer;
+
+    &:hover .flow-graph__node-rect {
+      filter: brightness(1.15);
+    }
+  }
+}
