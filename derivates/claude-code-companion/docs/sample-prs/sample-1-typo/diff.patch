@@ -1,0 +1,22 @@
+diff --git a/src/services/userGreeter.ts b/src/services/userGreeter.ts
+index 1a2b3c4..5d6e7f8 100644
+--- a/src/services/userGreeter.ts
++++ b/src/services/userGreeter.ts
+@@ -1,12 +1,15 @@
+ export interface User {
+   id: string;
+   name: string;
+   email: string;
+ }
+
+-export function greet(user: User): string {
+-  return `Hello, ${user.name}!`;
++export function greet(user: User): string {
++  // v0.2: also include the user's email in the greeting line so support
++  // tooling can copy-paste a single string and have the address handy.
++  return `Hello, ${user.nmae} (${user.email})!`;
+ }
+
+ export function farewell(user: User): string {
+   return `Goodbye, ${user.name}.`;
+ }

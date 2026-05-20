@@ -1,0 +1,31 @@
+diff --git a/src/utils/arrayChunk.ts b/src/utils/arrayChunk.ts
+index aa11bb2..cc33dd4 100644
+--- a/src/utils/arrayChunk.ts
++++ b/src/utils/arrayChunk.ts
+@@ -1,14 +1,18 @@
+-export function chunk<T>(arr: T[], size: number): T[][] {
+-  const out: T[][] = [];
+-  let i = 0;
+-  while (i < arr.length) {
+-    const slice: T[] = [];
+-    for (let j = 0; j < size && i + j < arr.length; j++) {
+-      slice.push(arr[i + j]);
+-    }
+-    out.push(slice);
+-    i += size;
+-  }
+-  return out;
++/**
++ * Split `arr` into chunks of length `size`. The final chunk may be shorter.
++ * Throws on non-positive `size` so a `0` argument doesn't silently spin forever.
++ */
++export function chunk<T>(arr: T[], size: number): T[][] {
++  if (size <= 0 || !Number.isInteger(size)) {
++    throw new RangeError(`chunk: size must be a positive integer, got ${size}`);
++  }
++  const out: T[][] = [];
++  for (let i = 0; i < arr.length; i += size) {
++    out.push(arr.slice(i, i + size));
++  }
++  return out;
+ }

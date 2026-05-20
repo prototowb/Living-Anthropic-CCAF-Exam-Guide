@@ -1,0 +1,14 @@
+{
+  "comments": [
+    {
+      "path": "src/services/userGreeter.ts",
+      "line": 10,
+      "severity": "blocker",
+      "rationale": "Property typo: reads `user.nmae` but the `User` interface declares `name`. At runtime this is `undefined` and the greeting renders as `Hello, undefined (...)!`.",
+      "confidence": 0.98
+    }
+  ],
+  "verdict": "request_changes",
+  "confidence": 0.97,
+  "promptVersion": "v1.0-2026-05-20"
+}

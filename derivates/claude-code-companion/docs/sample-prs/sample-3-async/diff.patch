@@ -1,0 +1,25 @@
+diff --git a/src/services/userFetcher.ts b/src/services/userFetcher.ts
+index 7777aaa..8888bbb 100644
+--- a/src/services/userFetcher.ts
++++ b/src/services/userFetcher.ts
+@@ -1,10 +1,17 @@
+ interface User { id: string; name: string; email: string }
+
+ async function fetchUser(id: string): Promise<User> {
+   const res = await fetch(`/api/users/${id}`);
+   return res.json();
+ }
+
+-export async function userLabel(id: string): Promise<string> {
+-  const u = await fetchUser(id);
+-  return `${u.name} <${u.email}>`;
+-}
++export async function userLabel(id: string): Promise<string> {
++  // refactor: pull the user lookup out so other callers can reuse it.
++  const u = fetchUser(id);
++  return `${u.name} <${u.email}>`;
++}
++
++export async function userLabels(ids: string[]): Promise<string[]> {
++  return Promise.all(ids.map((id) => userLabel(id)));
++}

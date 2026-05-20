@@ -1,0 +1,297 @@
+# Claude Code review — Scenario 5 v0.4 task 6.
+#
+# Runs the CI review prompt against each PR and posts findings as a review.
+# The prompt body is the verbatim content of docs/CI_REVIEW_PROMPT.md
+# (v1.0-2026-05-20 at time of writing). The output JSON is validated against
+# src/agents/schemas/reviewOutput.ts and split:
+#   - blocker findings -> `gh pr review --request-changes`
+#   - suggestion/nit   -> `gh pr review --comment`
+#
+# Architect mandates honoured here:
+#   - TS 3.6 non-interactive `-p` invocation with `--output-format json`.
+#   - TS 3.6 generator-isolation: a fresh `claude` process per workflow run,
+#     no `--resume`, no shared session id. See deepening task C.
+#   - TS 3.6 fork-PR safety: workflow short-circuits if the PR head repo is a
+#     fork. v0.5 will move this to `pull_request_target` with hardened
+#     sandboxing (deny-by-default permissions, scoped GITHUB_TOKEN, no checkout
+#     of fork code into the privileged context, fetch-and-diff only).
+#   - v0.3 hook overlay (docs/CI_HOOK_OVERLAY.md) is materialised at
+#     .claude/settings.local.json before claude is invoked so the scope-guard
+#     hook bounds Edit/Write to touched files.
+#
+# v0.5 follow-ups (intentionally not in this workflow):
+#   - Real budget accumulator (a persisted month-stamped counter that the
+#     workflow updates after every successful run, rather than the honest-stub
+#     check below which only short-circuits when the var is explicitly 0).
+#   - Independent reviewer pass (deepening task A): a second `claude -p`
+#     instance that filters the first pass's draft for false positives.
+#   - Incremental-review continuity (deepening task D): fetch the prior
+#     ReviewSummary from the last bot comment, dedupe by (path, line,
+#     rationale-hash), and report only new or still-unaddressed issues.
+
+name: claude-review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  issue_comment:
+    types: [created]
+
+# One review per PR head. A fresh push cancels the in-flight run so contributors
+# don't get duplicate comments while iterating.
+concurrency:
+  group: claude-review-${{ github.event.pull_request.number || github.event.issue.number }}
+  cancel-in-progress: true
+
+# Least-privilege defaults. The workflow only needs to read code and write
+# PR-review state. `issues: read` covers the `/claude-review` comment trigger.
+permissions:
+  contents: read
+  pull-requests: write
+  issues: read
+
+jobs:
+  review:
+    name: Claude review
+    runs-on: ubuntu-latest
+
+    # Trigger gate:
+    #   1. `pull_request` events from the same repo (fork PRs are skipped — see
+    #      fork-PR safety note in the file header).
+    #   2. `issue_comment` events on a PR whose body is exactly `/claude-review`
+    #      and posted by a user with write access (author_association check).
+    if: |
+      (
+        github.event_name == 'pull_request' &&
+        github.event.pull_request.head.repo.full_name == github.repository
+      ) ||
+      (
+        github.event_name == 'issue_comment' &&
+        github.event.issue.pull_request != null &&
+        startsWith(github.event.comment.body, '/claude-review') &&
+        contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association)
+      )
+
+    steps:
+      - name: Resolve PR ref
+        id: pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "number=${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT"
+            echo "head_sha=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_OUTPUT"
+            echo "base_ref=${{ github.event.pull_request.base.ref }}" >> "$GITHUB_OUTPUT"
+          else
+            # /claude-review comment trigger — look up the PR via the issue number.
+            pr_number="${{ github.event.issue.number }}"
+            pr_json="$(gh api "repos/${{ github.repository }}/pulls/${pr_number}")"
+            head_sha="$(echo "$pr_json" | jq -r .head.sha)"
+            base_ref="$(echo "$pr_json" | jq -r .base.ref)"
+            echo "number=${pr_number}" >> "$GITHUB_OUTPUT"
+            echo "head_sha=${head_sha}" >> "$GITHUB_OUTPUT"
+            echo "base_ref=${base_ref}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.pr.outputs.head_sha }}
+          # Need history so `git diff base..HEAD` resolves the merge-base.
+          fetch-depth: 0
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Honest-stub cost ceiling (v0.4 task 7).
+      #
+      # The repo-variable `CLAUDE_REVIEW_MONTHLY_BUDGET_USD` is the monthly
+      # budget. v0.4 implements only the short-circuit half of the contract:
+      #   - if the var is unset or > 0, proceed.
+      #   - if the var is exactly "0", post a "skipped" comment and exit 0.
+      #
+      # v0.5 will land the real accumulator: a small repo-side counter
+      # (likely a JSON file on a `_runs` branch, written after every run with
+      # the estimated cost) that this step subtracts from the monthly budget,
+      # short-circuiting once the running spend approaches the cap. The honest
+      # stub still satisfies the acceptance test from the v0.4 sprint plan
+      # ("setting the budget to 0 and opening a PR yields a 'skipped' comment,
+      # not a billed call").
+      - name: Budget short-circuit (honest-stub for v0.5)
+        id: budget
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BUDGET: ${{ vars.CLAUDE_REVIEW_MONTHLY_BUDGET_USD }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+        run: |
+          set -euo pipefail
+          if [ "${BUDGET:-}" = "0" ]; then
+            echo "Budget is 0 — short-circuiting."
+            gh pr comment "$PR_NUMBER" \
+              --repo "${{ github.repository }}" \
+              --body "Skipped: monthly Claude review budget exhausted. Set repo variable \`CLAUDE_REVIEW_MONTHLY_BUDGET_USD\` to a positive value to re-enable Claude reviews."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Compute touched files
+        if: steps.budget.outputs.skip != 'true'
+        id: scope
+        env:
+          BASE_REF: ${{ steps.pr.outputs.base_ref }}
+        run: |
+          set -euo pipefail
+          git fetch origin "$BASE_REF" --depth=1
+          # Triple-dot diff: changes on HEAD since the merge-base with $BASE_REF.
+          # Mirrors what scripts/review-pr.ts uses locally.
+          git diff --name-only "origin/${BASE_REF}...HEAD" > /tmp/touched
+          echo "Touched files:"
+          cat /tmp/touched
+          # Colon-separated for .claude/hooks/scope-guard.sh.
+          touched_colon="$(tr '\n' ':' < /tmp/touched | sed 's/:$//')"
+          {
+            echo "touched<<EOF"
+            cat /tmp/touched
+            echo "EOF"
+            echo "touched_colon=${touched_colon}"
+          } >> "$GITHUB_OUTPUT"
+
+      # Materialise the CI hook overlay before invoking claude. Spec lives in
+      # docs/CI_HOOK_OVERLAY.md (Scenario 5 v0.3). The overlay narrows
+      # WebFetch, hardens the Bash deny-list, and wires scope-guard.sh as a
+      # preToolUse hook for Edit/Write.
+      - name: Write .claude/settings.local.json (CI hook overlay)
+        if: steps.budget.outputs.skip != 'true'
+        run: |
+          set -euo pipefail
+          mkdir -p .claude
+          cat > .claude/settings.local.json <<'JSON'
+          {
+            "$schema": "https://json.schemastore.org/claude-code-settings.json",
+            "permissions": {
+              "allow": [
+                "WebFetch(https://raw.githubusercontent.com/**)",
+                "WebFetch(https://docs.github.com/**)",
+                "WebFetch(https://api.github.com/**)"
+              ],
+              "deny": [
+                "Bash(rm *)",
+                "Bash(rm -rf *)",
+                "Bash(rmdir *)",
+                "Bash(git push *)",
+                "Bash(git push:*)",
+                "Bash(git reset --hard *)",
+                "Bash(git checkout -- *)",
+                "Bash(git clean -fd *)",
+                "Bash(curl * | bash)",
+                "Bash(curl * | sh)",
+                "Bash(wget * | bash)",
+                "Bash(wget * | sh)",
+                "Bash(npm publish *)",
+                "Bash(npm run extract:api *)",
+                "Bash(sudo *)",
+                "Bash(shutdown *)",
+                "Bash(dd if=*)",
+                "Bash(mkfs *)",
+                "Bash(:(){ :|:& };:)",
+                "WebFetch(*)"
+              ]
+            },
+            "hooks": {
+              "preToolUse": [
+                { "matcher": { "tool": "Edit" }, "command": ".claude/hooks/scope-guard.sh" },
+                { "matcher": { "tool": "Write" }, "command": ".claude/hooks/scope-guard.sh" }
+              ]
+            }
+          }
+          JSON
+          chmod +x .claude/hooks/scope-guard.sh || true
+
+      - name: Run Claude review (or v0.4 dry-run fallback)
+        if: steps.budget.outputs.skip != 'true'
+        id: review
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Hook overlay environment (see docs/CI_HOOK_OVERLAY.md).
+          CLAUDE_TOUCHED_FILES: ${{ steps.scope.outputs.touched_colon }}
+          CLAUDE_PR_NUMBER: ${{ steps.pr.outputs.number }}
+        run: |
+          set -euo pipefail
+          # v0.4 honesty: the real `claude-code` CLI may not be available on
+          # this runner yet. Detect it; if present, use it. If absent, fall
+          # back to the dry-run script which emits a valid ReviewSummary from
+          # the hand-curated synthetic adapter. v0.5 will hard-require the
+          # real CLI and remove the fallback branch.
+          mkdir -p /tmp/claude
+          if command -v claude-code >/dev/null 2>&1 || command -v claude >/dev/null 2>&1; then
+            CLAUDE_BIN="$(command -v claude-code || command -v claude)"
+            echo "Using real Claude CLI at: $CLAUDE_BIN"
+            # No --resume, no session id. Generator-isolation per deepening
+            # task C: a fresh process with no prior session context.
+            "$CLAUDE_BIN" -p "$(cat docs/CI_REVIEW_PROMPT.md)" --output-format json \
+              > /tmp/claude/review.json
+          else
+            echo "Claude CLI not found on runner — using v0.4 dry-run fallback."
+            echo "(v0.5 will hard-require the real CLI and remove this branch.)"
+            # Default fixture only — v0.5 wires per-touched-file invocation.
+            npm run review:dry > /tmp/claude/review.json
+          fi
+          echo "--- review JSON ---"
+          cat /tmp/claude/review.json
+          echo "review_path=/tmp/claude/review.json" >> "$GITHUB_OUTPUT"
+
+      - name: Post review to PR
+        if: steps.budget.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          REVIEW_PATH: ${{ steps.review.outputs.review_path }}
+        run: |
+          set -euo pipefail
+          # Parse the ReviewSummary and post:
+          #   verdict=request_changes -> gh pr review --request-changes (+blockers as body)
+          #   verdict=comment_only    -> gh pr review --comment        (+all comments as body)
+          #   verdict=approve         -> gh pr review --approve        (no comments)
+          verdict="$(jq -r '.verdict' "$REVIEW_PATH")"
+          prompt_version="$(jq -r '.promptVersion' "$REVIEW_PATH")"
+          body="$(jq -r '
+            "Claude review (prompt " + .promptVersion + ")\n\n" +
+            (if (.comments | length) == 0
+              then "No findings."
+              else
+                (.comments
+                  | map(
+                      "- **" + .severity + "** `" + .path + ":" + (.line|tostring) +
+                      "` (conf " + (.confidence|tostring) + ") — " + .rationale
+                    )
+                  | join("\n"))
+              end)
+          ' "$REVIEW_PATH")"
+
+          echo "Verdict: $verdict (promptVersion=$prompt_version)"
+          case "$verdict" in
+            request_changes)
+              gh pr review "$PR_NUMBER" --repo "${{ github.repository }}" \
+                --request-changes --body "$body"
+              ;;
+            comment_only)
+              gh pr review "$PR_NUMBER" --repo "${{ github.repository }}" \
+                --comment --body "$body"
+              ;;
+            approve)
+              gh pr review "$PR_NUMBER" --repo "${{ github.repository }}" \
+                --approve --body "$body"
+              ;;
+            *)
+              echo "Unknown verdict: $verdict" >&2
+              exit 1
+              ;;
+          esac

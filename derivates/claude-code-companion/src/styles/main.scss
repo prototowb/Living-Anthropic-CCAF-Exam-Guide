@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light dark;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: theme('colors.ink.50');
+  color: theme('colors.ink.900');
+}
+
+code, pre, .mono {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+/* Tiny utility classes for the REPL sandbox. Kept here rather than per-file
+   because there is exactly one sandbox in v0.1. */
+.repl {
+  background: theme('colors.ink.900');
+  color: theme('colors.ink.100');
+  border-radius: 0.5rem;
+  padding: 1rem;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+.repl__line { display: block; }
+.repl__line--system   { color: theme('colors.ink.400'); }
+.repl__line--prompt   { color: theme('colors.ink.300'); }
+.repl__line--user     { color: theme('colors.stage.s1'); }
+.repl__line--assistant { color: theme('colors.ink.50'); }
+.repl__line--tool-call  { color: theme('colors.stage.s2'); }
+.repl__line--permission { color: theme('colors.stage.s5'); font-weight: 500; }
+.repl__line--tool-result { color: theme('colors.ink.300'); padding-left: 1rem; }
+.repl__line--note { color: theme('colors.stage.s4'); font-style: italic; }

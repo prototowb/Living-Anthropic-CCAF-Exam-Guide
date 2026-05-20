@@ -1,0 +1,14 @@
+{
+  "comments": [
+    {
+      "path": "src/services/userFetcher.ts",
+      "line": 10,
+      "severity": "blocker",
+      "rationale": "Missing `await`: `fetchUser(id)` returns Promise<User> but line 11 reads `u.name` and `u.email` on the Promise object, producing `undefined <undefined>` at runtime.",
+      "confidence": 0.97
+    }
+  ],
+  "verdict": "request_changes",
+  "confidence": 0.96,
+  "promptVersion": "v1.0-2026-05-20"
+}
