@@ -39,6 +39,7 @@ const NAV = [
   { keywords: ['lesson', 'practice', 'reorder', 'blank'], route: '/lessons', label: 'Lessons' },
   { keywords: ['sandbox', 'repl', 'try', 'demo'], route: '/sandboxes', label: 'Sandboxes' },
   { keywords: ['atlas', 'map', 'concept'], route: '/atlas', label: 'Concept Atlas' },
+  { keywords: ['weak', 'gap', 'struggle', 'missed'], route: '/weak-spots', label: 'Weak spots' },
   { keywords: ['stage', 'learn', 'start', 'begin'], route: '/learn', label: 'Stages' },
   { keywords: ['progress', 'how am i', 'doing'], route: '/', label: 'Home (progress)' },
   { keywords: ['tutor', 'chat'], route: '/tutor', label: 'Claude Tutor' },

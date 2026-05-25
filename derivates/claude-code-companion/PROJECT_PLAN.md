@@ -180,12 +180,33 @@ Re-author from scratch (content, not code):
 
 ## 9. Quality bars
 
-| Version | Bar |
-|---|---|
-| **v0.1.0 — Skeleton walks** | `typecheck` + `build` clean. Stages S1–S2 authored. 1 sandbox (First-session REPL). 20 quiz items. 6 lessons. Tutor answers via hub-and-spoke with one subagent. Help Bot stubbed with 2 MCP tools. Mock SDK default. No external network needed to run. |
-| **v0.2.0 — Half-coverage** | Stages S1–S5. 4 sandboxes. 40 quiz items. 12 lessons. Tutor with 3 subagents (Explainer, Quizmaster, Codebase Researcher). Content pipeline (Scenario 6) runs in mock mode and produces `_generated/`. `ModelAdapter` interface stub + capabilities flags wired into Tutor and Help Bot. |
-| **v0.3.0 — Practice → reflection + local model** | All 8 stages. 6 sandboxes. Weak-spots + rung filter. Reverse-link chips. Atlas full. Tutor with scratchpad + escalation. Help Bot with all 4 MCP tools and structured errors. **WebLLM browser-native adapter** wired (Llama 3.2 3B Instruct by default, one-click download). **Ollama / LM Studio auto-detect** adapter wired. "Limited" badge + explainer when a local adapter is active. Content pipeline (Scenario 6) demonstrated running end-to-end against the local model. |
-| **v0.4.0 — Flow of concepts** | 8 sandboxes. 60 lessons. 80 quiz items. `/under-the-hood` page fully cross-linked to source. CI workflow (Scenario 5) reviewing every PR with hooks configured. Real-SDK content-extraction script documented and runnable end-to-end. Adapter picker in settings has all four options. |
+| Version | Bar | Status |
+|---|---|---|
+| **v0.1.0 — Skeleton walks** | `typecheck` + `build` clean. Stages S1–S2 authored. 1 sandbox (First-session REPL). 20 quiz items. 6 lessons. Tutor answers via hub-and-spoke with one subagent. Help Bot stubbed with 2 MCP tools. Mock SDK default. No external network needed to run. | ✅ Shipped. |
+| **v0.2.0 — Half-coverage** | Stages S1–S5. 4 sandboxes. 40 quiz items. 12 lessons. Tutor with 3 subagents (Explainer, Quizmaster, Codebase Researcher). Content pipeline (Scenario 6) runs in mock mode and produces `_generated/`. `ModelAdapter` interface stub + capabilities flags wired into Tutor and Help Bot. | ✅ Shipped — exceeded (see §9a). |
+| **v0.3.0 — Practice → reflection + local model** | All 8 stages. 6 sandboxes. Weak-spots + rung filter. Reverse-link chips. Atlas full. Tutor with scratchpad + escalation. Help Bot with all 4 MCP tools and structured errors. **WebLLM browser-native adapter** wired (Llama 3.2 3B Instruct by default, one-click download). **Ollama / LM Studio auto-detect** adapter wired. "Limited" badge + explainer when a local adapter is active. Content pipeline (Scenario 6) demonstrated running end-to-end against the local model. | ⚠ Surface ✅; local-model adapters land as honest stubs (interface-compliant, `createMessage` throws). Real wiring deferred to v0.5. |
+| **v0.4.0 — Flow of concepts** | 8 sandboxes. 60 lessons. 80 quiz items. `/under-the-hood` page fully cross-linked to source. CI workflow (Scenario 5) reviewing every PR with hooks configured. Real-SDK content-extraction script documented and runnable end-to-end. Adapter picker in settings has all four options. | ✅ Shipped — every bar hit exactly. |
+| **v0.5.0 — Adapters real** *(planned)* | **WebLLM real wiring** (lazy `await import('@mlc-ai/web-llm')` inside `createMessage`; WebGPU detection + download-progress UI; default Llama 3.2 3B Instruct, ~2 GB cached). **Ollama** auto-detect on `localhost:11434` + OpenAI-compatible chat dispatch. **LM Studio** auto-detect on `localhost:1234`. **In-app API key entry** for the Real adapter (localStorage with clear "stored on this device" warning + forget button). Scenario 6 LiveDemo drops the regex workaround once a real `schemaMode: true` adapter is active. CI workflow follow-ups (commented in `.github/workflows/claude-review.yml`): real budget accumulator (persisted month-stamped counter), fork-PR safety hardening (`pull_request_target` + scoped tokens), independent-reviewer pass, incremental-review continuity. | Sketched. |
+
+### 9a. Status as of `0.3.0-pre`
+
+What this `package.json` version reflects: **the entire surface promised through v0.4 is shipped**. The `-pre` suffix exists because v0.3 in §9 also required real local-model wiring (deferred to v0.5).
+
+**Shipped this session (v0.2 → v0.4):**
+
+- **All eight stages authored.** S1–S8 each carry a full markdown body, 6 lessons, 10 quiz items, and a dedicated sandbox.
+- **Surface counts.** 60 lessons across the four formats (reorder, blanks, mcq, flow-builder). 80 quiz items. 8 sandboxes — REPL, permission gate, plan-mode workshop, CLAUDE.md hierarchy, session lifecycle, subagent dispatcher, MCP & hooks composer, headless composer.
+- **Atlas.** 57 concept nodes + 12 cross-stage bridges at `/atlas`. Each node deep-links to a stage / lesson / quiz question.
+- **New routes.** `/atlas`, `/settings`, `/weak-spots`. Footer + nav updated.
+- **Reverse-link chips.** TutorView (citation-driven), LessonView (back to parent stage + sandbox), QuizQuestionView (post-reveal, same shape).
+- **Adapter picker.** All five options (Mock + Real + WebLLM/Ollama/LM-Studio stubs) visible at `/settings`. Non-mock adapters intentionally not persisted across refreshes — see the SettingsView footer note for why.
+- **Substrate (unchanged this session, but worth naming).** Tutor with 4 subagents (Explainer, Quizmaster, Codebase Researcher, Doc Synthesiser) + scratchpad + escalation. Help Bot with 5 MCP-shaped tools + 4-value `ErrorCategory`. Shared `dispatchAllSettled`, `parse.ts`, capability-aware fallback paths.
+- **CI.** `.github/workflows/claude-review.yml` posts structured PR reviews via `gh pr review`; `.claude/settings.json` hooks enforce a scope-guard preToolUse on Edit/Write; honest-stub cost ceiling.
+- **Content pipeline.** `scripts/extract/` runs end-to-end against a fixture adapter by default; `EXTRACT_ADAPTER=api ANTHROPIC_API_KEY=…` activates the real adapter with retry-on-validation-failure.
+
+**Deferred to v0.5:** WebLLM/Ollama/LM-Studio real `createMessage` dispatch; in-app API-key entry for the Real adapter; Scenario 6 demo's regex-workaround drop; CI follow-ups (budget accumulator, fork-PR safety, independent-reviewer pass, incremental-review continuity).
+
+**Tag suggestion:** bump `package.json` from `0.3.0-pre` to `0.3.0` once you're ready to call the v0.3+v0.4 surface complete (the v0.3 local-model wiring intentionally rolls into v0.5).
 
 ## 10. Open decisions for the first session
 

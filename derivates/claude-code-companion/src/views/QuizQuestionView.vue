@@ -1,13 +1,20 @@
 <script setup lang="ts">
+const props = defineProps<{ section: string; qid: string }>();
+
 import { computed, ref, watch } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
 import { getQuizSection } from '@/data/quizData';
+import { getStage } from '@/data/stages';
+import { getSandbox } from '@/data/sandboxes';
 import { useProgressStore } from '@/stores/progress';
 
-const props = defineProps<{ section: string; qid: string }>();
 const section = computed(() => getQuizSection(props.section));
 const question = computed(() =>
   section.value?.questions.find((q) => q.id === Number(props.qid)),
+);
+const stage = computed(() => (question.value ? getStage(question.value.stageId) : undefined));
+const sandbox = computed(() =>
+  stage.value?.sandboxId ? getSandbox(stage.value.sandboxId) : undefined,
 );
 
 const router = useRouter();
@@ -106,6 +113,27 @@ function next() {
       </div>
       <p class="text-sm text-ink-700">{{ question.explanation }}</p>
     </div>
+
+    <!-- Reverse-link chips — shown after reveal so they don't spoil the answer.
+         PROJECT_PLAN.md §5: "MCQ + reveal + reverse-link chips back to the stage + linked sandbox". -->
+    <footer
+      v-if="revealed && stage"
+      class="flex flex-wrap gap-2 pt-3 border-t border-ink-100"
+    >
+      <RouterLink
+        :to="`/learn/${stage.id}`"
+        class="text-xs px-2 py-1 rounded border border-ink-200 bg-canvas text-ink-700 hover:border-ink-400 hover:bg-ink-50 transition"
+      >
+        ← Stage {{ stage.number }}: {{ stage.title }}
+      </RouterLink>
+      <RouterLink
+        v-if="sandbox"
+        :to="`/sandboxes/${sandbox.id}`"
+        class="text-xs px-2 py-1 rounded border border-stage-s2/40 bg-stage-s2/5 text-stage-s2 hover:border-stage-s2 hover:bg-stage-s2/10 transition"
+      >
+        🧪 Sandbox: {{ sandbox.title }}
+      </RouterLink>
+    </footer>
   </section>
 
   <section v-else>

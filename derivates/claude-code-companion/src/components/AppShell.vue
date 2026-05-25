@@ -13,6 +13,7 @@ const navItems = [
   { to: '/quiz', label: 'Quiz' },
   { to: '/lessons', label: 'Lessons' },
   { to: '/sandboxes', label: 'Sandboxes' },
+  { to: '/atlas', label: 'Atlas' },
   { to: '/tutor', label: 'Tutor' },
 ];
 
@@ -58,9 +59,15 @@ const adapterLabel = computed(() => settings.adapterLabel);
 
     <footer class="border-t border-ink-200 bg-white text-xs text-ink-500">
       <div class="max-w-6xl mx-auto px-4 py-3 flex items-center gap-4">
-        <span>v0.1.0 — beginner curriculum, S1 + S2 authored</span>
+        <span>v0.3.0-pre — beginner curriculum, all 8 stages authored</span>
         <RouterLink to="/under-the-hood" class="hover:text-ink-900 underline">
           /under-the-hood
+        </RouterLink>
+        <RouterLink to="/settings" class="hover:text-ink-900 underline">
+          /settings
+        </RouterLink>
+        <RouterLink to="/weak-spots" class="hover:text-ink-900 underline">
+          /weak-spots
         </RouterLink>
         <span class="ml-auto">Mock SDK default · no API key required</span>
       </div>

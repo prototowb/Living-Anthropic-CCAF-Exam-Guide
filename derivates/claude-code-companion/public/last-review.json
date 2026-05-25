@@ -1,0 +1,31 @@
+{
+  "_meta": {
+    "pr": 42,
+    "title": "feat(parser): widen the token type to include comments",
+    "head": "a1b2c3d4e5f6",
+    "ranAt": "2026-05-20T18:42:11Z",
+    "source": "bundled-fixture",
+    "note": "This file ships with the dev build so the Scenario 5 demo lights up out of the box. In production CI, the workflow at .github/workflows/claude-review.yml overwrites this with the latest real run."
+  },
+  "summary": {
+    "comments": [
+      {
+        "path": "src/parser/tokens.ts",
+        "line": 23,
+        "severity": "suggestion",
+        "rationale": "The widened `TokenKind` should be exported as a const-assertion so consumers can derive a string-literal union via `typeof`. Today they re-declare the same set in `src/parser/lexer.ts:9`.",
+        "confidence": 0.84
+      },
+      {
+        "path": "src/parser/lexer.ts",
+        "line": 11,
+        "severity": "nit",
+        "rationale": "Doc comment refers to `TokenType` but the symbol was renamed to `TokenKind` in this PR. Quick rename to keep the docs in sync.",
+        "confidence": 0.91
+      }
+    ],
+    "verdict": "comment_only",
+    "confidence": 0.88,
+    "promptVersion": "v1.0-2026-05-20"
+  }
+}

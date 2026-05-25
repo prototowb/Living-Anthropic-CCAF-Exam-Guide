@@ -1,7 +1,7 @@
 {
   "name": "claude-code-companion",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.3.0-pre",
   "type": "module",
   "description": "Interactive study companion for Claude Code (the CLI tool), aimed at beginner users. Living-codebase derivative of architect-interactive-playbook — the source is itself a reference implementation of all 6 Architect — Foundations exam scenarios.",
   "scripts": {
