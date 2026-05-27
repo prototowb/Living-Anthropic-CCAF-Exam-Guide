@@ -365,6 +365,218 @@ export const flows: Flow[] = [
   },
 ];
 
+// ---------------------------------------------------------------------------
+// Variant flows (v0.5.0) — kin to the canonical six, but emphasizing a
+// different concern (failure recovery, prompt caching, cost / budget).
+// They show up in the Atlas as additional named flows and back the new
+// flow-builder lesson variants.
+// ---------------------------------------------------------------------------
+flows.push(
+  // -----------------------------------------------------------------------
+  {
+    id: 'multi-agent-research-recovery',
+    title: 'Multi-agent research run — failure-recovery edition',
+    summary:
+      'Same research flow, but ordered to make failure recovery a first-class step: ' +
+      'plan a retry envelope BEFORE dispatch, propagate structured errors, then ' +
+      'distinguish "access failure" from "valid empty result" at the synthesis step.',
+    domainsCovered: ['d1', 'd2', 'd5'],
+    scenarioHint: 'Multi-Agent Research — partial-failure path',
+    steps: [
+      {
+        patternId: 'task-decomposition',
+        role: 'Partition the research space',
+        why:
+          'Narrow decomposition is the most common failure mode. Before dispatch, name ' +
+          'every subtopic explicitly so a failure of one subagent does not silently ' +
+          'erase a region of the answer.',
+      },
+      {
+        patternId: 'structured-errors',
+        role: 'Commit to ToolResponse<T> up front',
+        why:
+          'Decide BEFORE you dispatch what error contract every tool returns. Otherwise the ' +
+          "coordinator can't distinguish transient vs business failure at merge time and " +
+          'defaults to "ignore and continue" — silently dropping evidence.',
+      },
+      {
+        patternId: 'parallel-subagents',
+        role: 'Dispatch with timeouts',
+        why:
+          'Independent subagents fan out under Promise.all, each with its own timeout. ' +
+          'The slow spoke does not stall the whole flow — Promise.allSettled-style handling ' +
+          'lets you proceed with whichever spokes came back.',
+      },
+      {
+        patternId: 'multi-agent-error-propagation',
+        role: 'Propagate structured failure context',
+        why:
+          'A subagent that fails returns { failureType, attempted, partialResults, ' +
+          'alternatives }. The coordinator can now retry with a modified query, fall back ' +
+          'to a sibling, or escalate — not just "search returned nothing".',
+      },
+      {
+        patternId: 'context-pruning',
+        role: 'Prune partial results before synthesis',
+        why:
+          'When you proceed with partial coverage, partial results can still be voluminous. ' +
+          'Prune to key facts + citations + relevance scores BEFORE the synthesis agent ' +
+          'sees them, otherwise the missing-region signal gets lost in the middle.',
+      },
+      {
+        patternId: 'provenance-and-uncertainty',
+        role: 'Synthesize with provenance AND coverage gaps',
+        why:
+          'Failures are data. The synthesis must annotate which subtopics are well-covered ' +
+          'vs which had partial / no results — a confidence-weighted answer beats an answer ' +
+          'that silently treats missing data as "no findings".',
+      },
+      {
+        patternId: 'escalation',
+        role: 'Escalate on no-progress',
+        why:
+          'If the retry envelope is exhausted and coverage gaps remain on critical ' +
+          'subtopics, hand off with a structured summary — do not invent findings to ' +
+          'fill the hole.',
+      },
+    ],
+  },
+
+  // -----------------------------------------------------------------------
+  {
+    id: 'coordinator-turn-cached',
+    title: 'Hub-and-Spoke coordinator turn — cache-aware edition',
+    summary:
+      'Same coordinator turn, but ordered to maximize prompt-cache hits. Stable context ' +
+      '(CLAUDE.md, few-shot block) sits at the front as the cache anchor. The dynamic ' +
+      'tail — user prompt, current case facts — is shorter and cheaper.',
+    domainsCovered: ['d1', 'd3', 'd5'],
+    scenarioHint: 'Cost-sensitive deployment of the coordinator',
+    steps: [
+      {
+        patternId: 'claude-md-hierarchy',
+        role: 'Stable preamble (cache anchor)',
+        why:
+          'CLAUDE.md content is the same on every turn — it is the ideal cache anchor. ' +
+          'Place it at the very top of the system prompt so the cache prefix is large and ' +
+          'reused; everything dynamic goes BELOW it.',
+      },
+      {
+        patternId: 'few-shot',
+        role: 'Few-shot examples (also stable)',
+        why:
+          'Few-shot examples for intent classification rarely change. Keep them with the ' +
+          'CLAUDE.md preamble inside the cached prefix. Editing examples invalidates the ' +
+          'cache for every subsequent turn — treat the example block as schema, not knobs.',
+      },
+      {
+        patternId: 'task-allowed-tools',
+        role: 'Tool spec is part of the cache prefix',
+        why:
+          'Tool specs are stable across turns; they belong INSIDE the cached prefix, not ' +
+          'in the dynamic tail. Reordering tool definitions per-turn busts the cache for ' +
+          'no benefit.',
+      },
+      {
+        patternId: 'parallel-subagents',
+        role: 'Dispatch (each spoke caches independently)',
+        why:
+          'Subagents have their own message arrays — each one gets its own cache anchor ' +
+          'on the explainer / quizmaster / code-reviewer system prompts. Designing those ' +
+          'as stable preambles is what makes the per-spoke cost predictable.',
+      },
+      {
+        patternId: 'structured-errors',
+        role: 'Decide error contract before tools run',
+        why:
+          'ToolResponse<T> shape is stable per tool — it lives in the cached prefix too. ' +
+          'Inlining ad-hoc error strings into responses makes them unique per turn, ' +
+          'thrashing the cache for tool result history.',
+      },
+      {
+        patternId: 'context-pruning',
+        role: 'Prune the DYNAMIC tail aggressively',
+        why:
+          'Cache hits help the prefix, not the tail. The dynamic tail is what you pay full ' +
+          'price on every turn. Prune verbose tool outputs and old scratchpad lines before ' +
+          'they balloon the dynamic portion.',
+      },
+      {
+        patternId: 'scratchpad',
+        role: 'One-line findings (compact tail)',
+        why:
+          'Keep scratchpad entries to one line each. Each turn appends one; older entries ' +
+          'can be summarized after N turns so the dynamic tail stays small and the ' +
+          'cached prefix stays large.',
+      },
+    ],
+  },
+
+  // -----------------------------------------------------------------------
+  {
+    id: 'extraction-pipeline-batched',
+    title: 'Structured-extraction pipeline — overnight / cost-budget edition',
+    summary:
+      'Same extraction shape, but for an overnight job with a strict cost budget. Use ' +
+      'the Message Batches API for the bulk pass (50% cost), keep validation + retry ' +
+      'in the loop, and route only the uncertain extracts to humans.',
+    domainsCovered: ['d4', 'd5'],
+    scenarioHint: 'Overnight invoice / contract / record extraction',
+    steps: [
+      {
+        patternId: 'explicit-criteria',
+        role: 'Pin down what counts as valid',
+        why:
+          'Cheaper inference does not save money if you re-run the whole batch. Lock the ' +
+          'criteria with examples BEFORE you submit 50,000 documents — otherwise drift on ' +
+          'one ambiguous field costs you the whole overnight run.',
+      },
+      {
+        patternId: 'json-schema',
+        role: 'Schema-constrained tool-use',
+        why:
+          'Tool-use with a JSON schema eliminates parse failures by construction. For ' +
+          'batches, this is non-negotiable — there is no interactive recovery during the ' +
+          '24h window.',
+      },
+      {
+        patternId: 'message-batches',
+        role: 'Submit overnight at 50% cost',
+        why:
+          'Asynchronous batches with stable custom_id per document. 50% cost vs sync, up ' +
+          'to 24h latency — fine for the overnight pass. Use custom_id to correlate ' +
+          'request → response so partial failures can be resubmitted exactly.',
+      },
+      {
+        patternId: 'validation-retry-loops',
+        role: 'Semantic validate; resubmit only failures',
+        why:
+          'Schema syntax is solved by tool-use; SEMANTIC errors are not. After the batch ' +
+          'completes, partition by custom_id, run semantic validation, and submit a SECOND ' +
+          'batch containing only the failures with the specific errors fed back as ' +
+          'context. Two batches still beats one synchronous run on cost.',
+      },
+      {
+        patternId: 'context-pruning',
+        role: 'Cap per-request payload size',
+        why:
+          'Long documents inflate per-request cost more than they raise accuracy past a ' +
+          'point. Chunk + prune to the budget BEFORE batch submission — otherwise the ' +
+          '"50% cheaper" headline disappears under per-document overage.',
+      },
+      {
+        patternId: 'human-review-confidence',
+        role: 'Route uncertain extracts to humans',
+        why:
+          'Field-level confidence scores drive routing: high-confidence rows post ' +
+          'straight to the warehouse; low-confidence rows queue for human review. ' +
+          'Cost-budget context: human review IS the most expensive step, so calibrate ' +
+          'confidence aggressively to send only true uncertainties.',
+      },
+    ],
+  },
+);
+
 export function getFlow(id: string): Flow | undefined {
   return flows.find((f) => f.id === id);
 }

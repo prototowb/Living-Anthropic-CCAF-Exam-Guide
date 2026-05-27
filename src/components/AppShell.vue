@@ -10,11 +10,13 @@ const navLinks = [
   { to: { name: 'home' }, label: 'Home' },
   { to: { name: 'quiz' }, label: 'Quiz' },
   { to: { name: 'mock-exam' }, label: 'Mock Exam' },
+  { to: { name: 'practice' }, label: 'Practice (weak spots)' },
   { to: { name: 'domains' }, label: 'Domains' },
   { to: { name: 'atlas' }, label: 'Concept Atlas' },
   { to: { name: 'tutor' }, label: 'Claude Tutor' },
   { to: { name: 'patterns' }, label: 'Pattern Showcase' },
   { to: { name: 'lessons' }, label: 'Micro-Lessons' },
+  { to: { name: 'glossary' }, label: 'Glossary' },
 ];
 
 const sectionLinks = quizSections.map((s) => ({

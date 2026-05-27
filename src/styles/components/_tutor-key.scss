@@ -1,0 +1,120 @@
+@use '../tokens' as *;
+
+.tutor-key {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  margin-bottom: $space-4;
+
+  &__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: $space-2;
+  }
+
+  &__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--color-surface-2);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-muted);
+
+    &--real {
+      background: rgba(212, 165, 80, 0.15);
+      border-color: #d4a550;
+      color: #f0c878;
+    }
+
+    &::before {
+      content: '';
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+  }
+
+  &__toggle {
+    margin-left: auto;
+  }
+
+  &__panel {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-left: 3px solid #d4a550;
+    border-radius: $radius-sm;
+    padding: $space-4;
+    display: flex;
+    flex-direction: column;
+    gap: $space-3;
+  }
+
+  &__warning {
+    background: rgba(212, 165, 80, 0.08);
+    border: 1px solid rgba(212, 165, 80, 0.35);
+    border-radius: $radius-sm;
+    padding: $space-3;
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--color-text);
+
+    strong {
+      color: #f0c878;
+    }
+  }
+
+  &__form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-2;
+    align-items: center;
+  }
+
+  &__input {
+    flex: 1 1 280px;
+    min-width: 0;
+    background: var(--color-surface-2);
+    border: 1px solid var(--color-border);
+    border-radius: $radius-sm;
+    padding: 8px 10px;
+    color: var(--color-text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+
+    &:focus {
+      outline: none;
+      border-color: var(--color-accent);
+    }
+  }
+
+  &__hint {
+    color: var(--color-text-muted);
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  &__error {
+    color: #f08680;
+    font-size: 13px;
+  }
+
+  &__connected {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: $space-3;
+    font-size: 13px;
+
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      color: #f0c878;
+    }
+  }
+}

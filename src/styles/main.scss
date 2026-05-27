@@ -14,6 +14,9 @@
 @use 'components/sandbox';
 @use 'components/related-chips';
 @use 'components/mock-exam';
+@use 'components/tutor-key';
+@use 'components/weak-spots';
+@use 'components/glossary';
 
 @tailwind base;
 @tailwind components;

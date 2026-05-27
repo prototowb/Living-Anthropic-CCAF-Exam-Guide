@@ -474,6 +474,81 @@ export const lessons: Lesson[] = [
     hint: 'CLAUDE.md before path-rules. JSON schema sits between the CLI flags and the parser. Batches for overnight only.',
     distractorPatternIds: ['programmatic-prerequisites', 'case-facts-block', 'task-decomposition'],
   },
+
+  // ---------------------------------------------------------------------
+  // Flow-builder variant lessons (v0.5.0)
+  // - l24 covers the previously-uncovered tool-call-lifecycle flow.
+  // - l25..l27 use NEW variant flows in flows.ts (failure-recovery,
+  //   cache-aware, cost-budget editions). The variant flows live alongside
+  //   the canonical six and surface in the Atlas as additional recipes.
+  // ---------------------------------------------------------------------
+  {
+    id: 'l24-flow-tool-call-lifecycle',
+    title: 'Build a tool-call lifecycle',
+    domainId: 'd2',
+    format: 'flow',
+    flowId: 'tool-call-lifecycle',
+    prompt:
+      'Compose one full tool call — from the model selecting a tool, through the deterministic prerequisite gate, the tool execution, the normalization hook, the structured response wrap, and pruning before context insertion.',
+    hint:
+      'Selection signal first (granular tools) → prerequisite gate runs BEFORE the tool → PostToolUse hook normalizes → wrap in ToolResponse<T> → prune before the model sees it.',
+    distractorPatternIds: [
+      'task-allowed-tools',
+      'multi-agent-error-propagation',
+      'validation-retry-loops',
+    ],
+  },
+  {
+    id: 'l25-flow-research-failure-recovery',
+    title: 'Build a multi-agent research run — failure-recovery edition',
+    domainId: 'd1',
+    format: 'flow',
+    flowId: 'multi-agent-research-recovery',
+    prompt:
+      'Compose the multi-agent research flow with failure recovery as a first-class step. The order has to make it possible to distinguish "access failure" from "valid empty result" at synthesis time.',
+    hint:
+      'Decompose → commit to error contract → dispatch with timeouts → propagate structured failure → prune partial results → synthesize with coverage gaps → escalate on no-progress.',
+    distractorPatternIds: [
+      'human-review-confidence',
+      'programmatic-prerequisites',
+      'session-resume-fork',
+      'message-batches',
+    ],
+  },
+  {
+    id: 'l26-flow-coordinator-cache-aware',
+    title: 'Build a hub-and-spoke turn — cache-aware edition',
+    domainId: 'd1',
+    format: 'flow',
+    flowId: 'coordinator-turn-cached',
+    prompt:
+      'Compose a coordinator turn ordered to maximize prompt-cache hits. Stable preamble at the top; the dynamic tail must stay small.',
+    hint:
+      'Cache anchor first (CLAUDE.md), then stable few-shot + tool spec — that is the cached prefix. Dispatch comes next, then the contracts, then the pruning that keeps the tail compact.',
+    distractorPatternIds: [
+      'message-batches',
+      'multi-instance-review',
+      'human-review-confidence',
+      'session-resume-fork',
+    ],
+  },
+  {
+    id: 'l27-flow-extraction-cost-budget',
+    title: 'Build a structured-extraction pipeline — overnight / cost-budget edition',
+    domainId: 'd4',
+    format: 'flow',
+    flowId: 'extraction-pipeline-batched',
+    prompt:
+      'Compose the overnight extraction flow. Cheap inference does not save money if you re-run — pin criteria and schema BEFORE submitting the batch.',
+    hint:
+      'Criteria + schema BEFORE submit. Batches for the bulk pass. Semantic validation resubmits only failures. Pruning happens BEFORE batch submission, not after.',
+    distractorPatternIds: [
+      'scratchpad',
+      'parallel-subagents',
+      'case-facts-block',
+      'multi-agent-error-propagation',
+    ],
+  },
 ];
 
 export function getLesson(id: string): Lesson | undefined {

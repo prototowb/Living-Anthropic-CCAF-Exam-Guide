@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import type { OptionLetter } from '@/data/quizData';
 import { load, save } from './persist';
+import { useWeakSpotsStore } from './weakSpots';
 
 const STORAGE_KEY = 'quiz:v1';
 
@@ -58,6 +59,10 @@ export const useQuizStore = defineStore('quiz', {
         answeredAt: Date.now(),
       };
       save<PersistedQuizState>(STORAGE_KEY, { answers: this.answers });
+      // Keep the spaced-repetition schedule in sync. A wrong answer enrolls
+      // (or resets) the question; a correct answer promotes any existing
+      // entry but never auto-enrolls a never-missed question.
+      useWeakSpotsStore().gradeAnswer(sectionId, qid, correct);
     },
     reset() {
       this.answers = {};

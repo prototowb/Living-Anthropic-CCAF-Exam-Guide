@@ -6,7 +6,7 @@
 
 **What this is.** An interactive study companion for the **Claude Certified Architect — Foundations** exam. Vue 3 + TypeScript SPA, runs entirely in the browser. The codebase is intentionally a **living study guide**: every directory mirrors one of the 5 exam domains, and every architect mandate has a real, runnable demonstration on the pattern showcase page.
 
-**Where we are.** v0.4.0 shipped 2026-05-18. Typecheck + build + preview all green at last sprint close. No active tickets.
+**Where we are.** v0.5.0 shipped 2026-05-26. Typecheck + build green at sprint close. No active tickets.
 
 **Read in this order:**
 
@@ -49,23 +49,27 @@ Mock SDK is the default — no API key needed. To switch on real Anthropic SDK c
 ## 📊 Current State
 
 ```yaml
-project_phase: "Sprint 4 complete — v0.4.0 (flow of concepts: atlas + walkthroughs + flow-builder)"
+project_phase: "Sprint 5 complete — v0.5.0 (spaced repetition · glossary · real SDK · variant flows)"
 protogear_enabled: true
 framework: "Vue 3 + Vite + TypeScript"
 project_type: "Single-page application (browser-only)"
 initialization_date: "2026-05-15"
 current_sprint: null
-last_release: "v0.4.0 — 2026-05-18"
+last_release: "v0.5.0 — 2026-05-26"
 exam_coverage: |
   32 patterns × 30 official task statements
   · 59-question timed mock exam (configurable budget, weak-spots scope, reverse-link walkthrough)
-  · 6 named flows · 4 live sandboxes
-  · 23 micro-lessons (11 reorder + 2 blanks + 5 mcq + 5 flow-builder)
-build:    "typecheck ✓ · vite build ✓ · preview HTTP 200"
-bundle:   "≈ 95 kB JS gzipped, ≈ 35 kB CSS gzipped (route-level lazy chunks)"
+  · 9 named flows (6 canonical + 3 variants: failure-recovery, cache-aware, cost-budget)
+  · 4 live sandboxes
+  · 27 micro-lessons (11 reorder + 2 blanks + 5 mcq + 9 flow-builder)
+  · Leitner-box spaced repetition (auto-enrolls wrong quiz answers)
+  · 40-entry glossary keyed to pattern tags
+  · Tutor: opt-in real Anthropic SDK with session-only API key
+build:    "typecheck ✓ · vite build ✓"
+bundle:   "≈ 105 kB JS gzipped, ≈ 40 kB CSS gzipped (route-level lazy chunks)"
 ```
 
-## 🗺 Surface inventory (at v0.4.0)
+## 🗺 Surface inventory (at v0.5.0)
 
 | Route | Component | What it does |
 |---|---|---|
@@ -84,23 +88,24 @@ bundle:   "≈ 95 kB JS gzipped, ≈ 35 kB CSS gzipped (route-level lazy chunks)
 | `/tutor` | `TutorView.vue` | Hub-and-spoke chat · subagent breakdown · scratchpad |
 | `/patterns` | `PatternsIndexView.vue` | Filters (D1-5, type), search, match snippets |
 | `/patterns/:id` | `PatternView.vue` | Code + flow strip + anti-pattern + sandbox + drill |
-| `/lessons` | `LessonsIndexView.vue` | 23 micro-lessons across 4 formats |
+| `/lessons` | `LessonsIndexView.vue` | 27 micro-lessons across 4 formats |
 | `/lessons/:id` | `LessonView.vue` | Reorder / Blanks / Mcq / FlowBuilder runner |
+| `/practice` | `WeakSpotsView.vue` | Leitner SR runner over wrong-answered questions |
+| `/glossary` | `GlossaryView.vue` | 40-entry term index, filterable by category |
 
 ## 🎫 Active Tickets
 
-*No active tickets. Sprints 1-4 closed. Pick from the backlog below or take a new direction.*
+*No active tickets. Sprints 1-5 closed. Pick from the backlog below or take a new direction.*
 
 ## 🪜 Suggested next moves (backlog hints)
 
 These are not commitments — they're directions the architecture is set up to accept cheaply.
 
-- **Glossary / index of terms** — a `/glossary` route surfacing `stop_reason`, `tool_choice`, `custom_id`, `context: fork`, `--print`, `isRetryable`, etc. as one-line definitions linked to patterns. Data could derive from existing pattern `tags`.
-- **Spaced repetition** — promote wrong answers back into a Leitner schedule and surface a "Practice your weak spots" daily tile on the home view. Storage shape is already in `quizStore.answers`.
-- **Real SDK in the tutor (gated)** — surface a "use my API key" form in `/tutor`, store it in a session ref (NOT localStorage), call `setAdapter(createRealAdapter(...))`. Already plumbed at the SDK adapter layer.
-- **More flow-builder lessons** — current 5 cover the 6 named flows minus tool-call-lifecycle; could deepen with variants ("Build the multi-agent research run — failure recovery edition") that reuse the same `flow` lesson type.
 - **Print-friendly per-domain study sheet** — `/domains/:id?print=1` view with `@media print` styles.
 - **Tests.** No test suite yet. If/when added: Vitest + Vue Test Utils for stores + lesson components first; the views are mostly composition and probably aren't where bugs hide.
+- **Glossary deep-link from patterns** — each pattern's `tags` could render as clickable chips linking back to `/glossary?q=…`. Reciprocal to the pattern chips already on each glossary entry.
+- **SR scheduler tunables** — expose the Leitner box-interval table in `/practice` as a small settings panel so power users can pick faster/slower decay.
+- **Atlas variant overlay** — the new variant flows (cache-aware, failure-recovery, cost-budget) currently sit alongside the canonical six. Could add a "show variants" toggle on `/atlas` so the macro view stays uncluttered by default.
 
 ## ✅ Completed Tickets (all sprints)
 
@@ -142,6 +147,13 @@ These are not commitments — they're directions the architecture is set up to a
 - **AIP-035** — Flow-builder lesson format + 5 lessons
 - **AIP-036** — Router + sidebar + home wired for atlas
 - **AIP-037** — v0.4.0 verify
+- **AIP-038** — Leitner-box `weakSpots` Pinia store; `quizStore.recordAnswer` syncs the SR schedule on every answer
+- **AIP-039** — `/practice` (`WeakSpotsView.vue`) runner + Home tile (renders only when `totalEnrolled > 0`)
+- **AIP-040** — `/glossary` (`GlossaryView.vue`) with 40 entries; pattern matches auto-derived from each entry's term/aliases against pattern `tags`
+- **AIP-041** — Session-only real-SDK opt-in in `/tutor`: `connectRealSdk(key)` / `disconnectRealSdk()` route through `setAdapter`; key held in a `shallowRef` (no `localStorage`, no `sessionStorage`, no `console.log`)
+- **AIP-042** — 3 new variant flows in `src/data/flows.ts` (`multi-agent-research-recovery`, `coordinator-turn-cached`, `extraction-pipeline-batched`)
+- **AIP-043** — 4 new flow-builder lessons (`l24`..`l27`): covers the previously-uncovered tool-call-lifecycle flow + the three variants
+- **AIP-044** — v0.5.0 verify
 
 ## 📈 Build / quality
 
@@ -160,6 +172,7 @@ These are not commitments — they're directions the architecture is set up to a
 - 2026-05-18: Sprint 3 — v0.3.0. Reverse-link index. Mock-exam store + 4 routes. Reveal-panel chips. Home tile.
 - 2026-05-18: Sprint 4 — v0.4.0. 6 named flows + flow helpers. Pattern flow strip. Concept Atlas (SVG) + flow walkthroughs. 8 new reorder lessons + new `flow` format + 5 flow-builder lessons. Atlas in sidebar + home tile.
 - 2026-05-20: Docs refreshed for hand-off (`PROJECT_ARCHITECTURE.md`, `PROJECT_SPECIFICATIONS.md`, this file).
+- 2026-05-26: Sprint 5 — v0.5.0. Spaced repetition (Leitner + `/practice` + Home tile). `/glossary` with 40 entries auto-linked to pattern tags. Session-only real-SDK opt-in in `/tutor`. 3 new variant flows + 4 new flow-builder lessons (covers the previously-uncovered tool-call-lifecycle).
 
 ---
 *Maintained by ProtoGear Agent Framework*

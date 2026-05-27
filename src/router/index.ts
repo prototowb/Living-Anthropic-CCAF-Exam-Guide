@@ -74,6 +74,16 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/LessonView.vue'),
     props: true,
   },
+  {
+    path: '/practice',
+    name: 'practice',
+    component: () => import('@/views/WeakSpotsView.vue'),
+  },
+  {
+    path: '/glossary',
+    name: 'glossary',
+    component: () => import('@/views/GlossaryView.vue'),
+  },
   { path: '/:pathMatch(.*)*', redirect: '/' },
 ];
 

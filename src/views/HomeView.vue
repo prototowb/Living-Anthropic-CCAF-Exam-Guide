@@ -7,12 +7,18 @@ import { lessons } from '@/data/lessons';
 import { useQuizStore } from '@/stores/quiz';
 import { useLessonStore } from '@/stores/lesson';
 import { useMockExamStore } from '@/stores/mockExam';
+import { useWeakSpotsStore } from '@/stores/weakSpots';
 import PageHeader from '@/components/PageHeader.vue';
 import ProgressBar from '@/components/ProgressBar.vue';
 
 const quizStore = useQuizStore();
 const lessonStore = useLessonStore();
 const mockExamStore = useMockExamStore();
+const weakSpots = useWeakSpotsStore();
+
+const weakSpotsDue = computed(() => weakSpots.dueCount);
+const weakSpotsTotal = computed(() => weakSpots.totalEnrolled);
+const weakSpotsBoxes = computed(() => weakSpots.boxBreakdown);
 
 const overall = computed(() => quizStore.overallStats());
 const lessonsCompleted = computed(() => lessonStore.completedCount);
@@ -101,6 +107,37 @@ const sectionsWithStats = computed(() =>
         :to="{ name: 'mock-exam-result', params: { id: lastExam.id } }"
         class="btn"
       >View last result</RouterLink>
+    </div>
+  </section>
+
+  <section
+    v-if="weakSpotsTotal > 0"
+    class="card mb-10 flex flex-col md:flex-row items-start md:items-center gap-4 justify-between"
+    style="border-left: 3px solid #d4a550;"
+  >
+    <div>
+      <div class="card__subtitle" style="color: #f0c878;">Spaced repetition · Practice your weak spots</div>
+      <div class="text-lg font-semibold mt-1">
+        <template v-if="weakSpotsDue > 0">
+          <span class="text-amber-300 font-mono">{{ weakSpotsDue }}</span>
+          due now · {{ weakSpotsTotal }} enrolled
+        </template>
+        <template v-else>
+          Nothing due — {{ weakSpotsTotal }} enrolled, all caught up for now.
+        </template>
+      </div>
+      <div class="text-xs text-ink-400 mt-1 font-mono">
+        Box 1: {{ weakSpotsBoxes[1] }} ·
+        Box 2: {{ weakSpotsBoxes[2] }} ·
+        Box 3: {{ weakSpotsBoxes[3] }} ·
+        Box 4: {{ weakSpotsBoxes[4] }} ·
+        Box 5: {{ weakSpotsBoxes[5] }}
+      </div>
+    </div>
+    <div class="flex gap-2 flex-wrap">
+      <RouterLink :to="{ name: 'practice' }" class="btn btn--primary">
+        {{ weakSpotsDue > 0 ? 'Practice now →' : 'Open practice' }}
+      </RouterLink>
     </div>
   </section>
 
