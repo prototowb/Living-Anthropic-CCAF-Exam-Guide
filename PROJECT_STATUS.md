@@ -105,7 +105,12 @@ These are not commitments — they're directions the architecture is set up to a
 - **Tests.** No test suite yet. If/when added: Vitest + Vue Test Utils for stores + lesson components first; the views are mostly composition and probably aren't where bugs hide.
 - **Glossary deep-link from patterns** — each pattern's `tags` could render as clickable chips linking back to `/glossary?q=…`. Reciprocal to the pattern chips already on each glossary entry.
 - **SR scheduler tunables** — expose the Leitner box-interval table in `/practice` as a small settings panel so power users can pick faster/slower decay.
-- **Atlas variant overlay** — the new variant flows (cache-aware, failure-recovery, cost-budget) currently sit alongside the canonical six. Could add a "show variants" toggle on `/atlas` so the macro view stays uncluttered by default.
+- **Atlas variant overlay** — the new variant flows (cache-aware, failure-recovery, cost-budget) currently sit alongside the canonical six. With 9 flows, the highlight bar on `/atlas` wraps to a long row at 1280px; a "show variants" toggle would let the macro view default to the canonical six.
+
+### Findings from v0.5.0 browser verification (2026-06-01)
+
+- **`HomeView.vue:148` hard-codes `"6 named flows"`.** v0.5 added three variant flows (`flows.length === 9`). One-line fix — swap the literal for `{{ flows.length }}` (the adjacent `{{ domains.length }}` already uses the dynamic form). Cosmetic, no functional impact.
+- **Tutor chat composer renders below the fold on tall viewports** when the thread is empty. Pre-existing layout where `.chat__thread` stretches before `.chat__composer`. Set the thread to `min-height` instead of `flex: 1`, or move the composer above the thread. Pre-v0.5 behavior; surfaced during v0.5 verification.
 
 ## ✅ Completed Tickets (all sprints)
 
