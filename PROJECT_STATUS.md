@@ -6,7 +6,7 @@
 
 **What this is.** An interactive study companion for the **Claude Certified Architect — Foundations** exam. Vue 3 + TypeScript SPA, runs entirely in the browser. The codebase is intentionally a **living study guide**: every directory mirrors one of the 5 exam domains, and every architect mandate has a real, runnable demonstration on the pattern showcase page.
 
-**Where we are.** v0.5.0 shipped 2026-05-26. Typecheck + build green at sprint close. No active tickets.
+**Where we are.** v0.5.1 shipped 2026-06-01. Typecheck + build green at sprint close. No active tickets.
 
 **Read in this order:**
 
@@ -49,13 +49,13 @@ Mock SDK is the default — no API key needed. To switch on real Anthropic SDK c
 ## 📊 Current State
 
 ```yaml
-project_phase: "Sprint 5 complete — v0.5.0 (spaced repetition · glossary · real SDK · variant flows)"
+project_phase: "v0.5.1 — Atlas variant toggle · glossary deep-links · tutor composer fix · flow count fix"
 protogear_enabled: true
 framework: "Vue 3 + Vite + TypeScript"
 project_type: "Single-page application (browser-only)"
 initialization_date: "2026-05-15"
 current_sprint: null
-last_release: "v0.5.0 — 2026-05-26"
+last_release: "v0.5.1 — 2026-06-01"
 exam_coverage: |
   32 patterns × 30 official task statements
   · 59-question timed mock exam (configurable budget, weak-spots scope, reverse-link walkthrough)
@@ -103,14 +103,7 @@ These are not commitments — they're directions the architecture is set up to a
 
 - **Print-friendly per-domain study sheet** — `/domains/:id?print=1` view with `@media print` styles.
 - **Tests.** No test suite yet. If/when added: Vitest + Vue Test Utils for stores + lesson components first; the views are mostly composition and probably aren't where bugs hide.
-- **Glossary deep-link from patterns** — each pattern's `tags` could render as clickable chips linking back to `/glossary?q=…`. Reciprocal to the pattern chips already on each glossary entry.
 - **SR scheduler tunables** — expose the Leitner box-interval table in `/practice` as a small settings panel so power users can pick faster/slower decay.
-- **Atlas variant overlay** — the new variant flows (cache-aware, failure-recovery, cost-budget) currently sit alongside the canonical six. With 9 flows, the highlight bar on `/atlas` wraps to a long row at 1280px; a "show variants" toggle would let the macro view default to the canonical six.
-
-### Findings from v0.5.0 browser verification (2026-06-01)
-
-- **`HomeView.vue:148` hard-codes `"6 named flows"`.** v0.5 added three variant flows (`flows.length === 9`). One-line fix — swap the literal for `{{ flows.length }}` (the adjacent `{{ domains.length }}` already uses the dynamic form). Cosmetic, no functional impact.
-- **Tutor chat composer renders below the fold on tall viewports** when the thread is empty. Pre-existing layout where `.chat__thread` stretches before `.chat__composer`. Set the thread to `min-height` instead of `flex: 1`, or move the composer above the thread. Pre-v0.5 behavior; surfaced during v0.5 verification.
 
 ## ✅ Completed Tickets (all sprints)
 
@@ -159,6 +152,10 @@ These are not commitments — they're directions the architecture is set up to a
 - **AIP-042** — 3 new variant flows in `src/data/flows.ts` (`multi-agent-research-recovery`, `coordinator-turn-cached`, `extraction-pipeline-batched`)
 - **AIP-043** — 4 new flow-builder lessons (`l24`..`l27`): covers the previously-uncovered tool-call-lifecycle flow + the three variants
 - **AIP-044** — v0.5.0 verify
+- **AIP-045** — Atlas variant toggle: `variant` field on `Flow`; canonical six default on `/atlas`, variants hidden behind "Show variant flows" checkbox with count badge
+- **AIP-046** — Glossary deep-link from pattern tags: `PatternView` tag pills → `<RouterLink to="/glossary?q=tag">`; `GlossaryView` seeds search from `?q=` and watches for nav between tag-chip links
+- **AIP-047** — Tutor chat composer layout fix: `.chat` uses `min-height`/`max-height` bounds instead of fixed `height`; thread gets `min-height: 0` so composer stays in view on tall empty viewports
+- **AIP-048** — `HomeView` dynamic flow count: replaced hard-coded `"6 named flows"` with `{{ flows.length }}`
 
 ## 📈 Build / quality
 
@@ -178,6 +175,7 @@ These are not commitments — they're directions the architecture is set up to a
 - 2026-05-18: Sprint 4 — v0.4.0. 6 named flows + flow helpers. Pattern flow strip. Concept Atlas (SVG) + flow walkthroughs. 8 new reorder lessons + new `flow` format + 5 flow-builder lessons. Atlas in sidebar + home tile.
 - 2026-05-20: Docs refreshed for hand-off (`PROJECT_ARCHITECTURE.md`, `PROJECT_SPECIFICATIONS.md`, this file).
 - 2026-05-26: Sprint 5 — v0.5.0. Spaced repetition (Leitner + `/practice` + Home tile). `/glossary` with 40 entries auto-linked to pattern tags. Session-only real-SDK opt-in in `/tutor`. 3 new variant flows + 4 new flow-builder lessons (covers the previously-uncovered tool-call-lifecycle).
+- 2026-06-01: v0.5.1 polish. Atlas variant toggle (canonical 6 default, +3 variants opt-in). Glossary deep-link from pattern tag chips (`/glossary?q=`). Tutor composer visible on tall empty viewports. HomeView flow count dynamic.
 
 ---
 *Maintained by ProtoGear Agent Framework*

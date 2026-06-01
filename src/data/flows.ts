@@ -22,6 +22,12 @@ export interface Flow {
   domainsCovered: ('d1' | 'd2' | 'd3' | 'd4' | 'd5')[];
   /** Scenario it maps to in the exam guide (informal). */
   scenarioHint?: string;
+  /**
+   * Variant flows are kin to a canonical flow but emphasize a different concern
+   * (failure recovery, caching, cost). They are hidden by default in the Atlas
+   * to keep the macro view uncluttered; users can opt-in via a toggle.
+   */
+  variant?: boolean;
   steps: FlowStep[];
 }
 
@@ -382,6 +388,7 @@ flows.push(
       'distinguish "access failure" from "valid empty result" at the synthesis step.',
     domainsCovered: ['d1', 'd2', 'd5'],
     scenarioHint: 'Multi-Agent Research — partial-failure path',
+    variant: true,
     steps: [
       {
         patternId: 'task-decomposition',
@@ -452,6 +459,7 @@ flows.push(
       'tail — user prompt, current case facts — is shorter and cheaper.',
     domainsCovered: ['d1', 'd3', 'd5'],
     scenarioHint: 'Cost-sensitive deployment of the coordinator',
+    variant: true,
     steps: [
       {
         patternId: 'claude-md-hierarchy',
@@ -522,6 +530,7 @@ flows.push(
       'in the loop, and route only the uncertain extracts to humans.',
     domainsCovered: ['d4', 'd5'],
     scenarioHint: 'Overnight invoice / contract / record extraction',
+    variant: true,
     steps: [
       {
         patternId: 'explicit-criteria',

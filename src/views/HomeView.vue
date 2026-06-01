@@ -4,6 +4,7 @@ import { RouterLink } from 'vue-router';
 import { quizSections, totalQuestionCount } from '@/data/quizData';
 import { domains } from '@/data/domains';
 import { lessons } from '@/data/lessons';
+import { flows } from '@/data/flows';
 import { useQuizStore } from '@/stores/quiz';
 import { useLessonStore } from '@/stores/lesson';
 import { useMockExamStore } from '@/stores/mockExam';
@@ -145,7 +146,7 @@ const sectionsWithStats = computed(() =>
     <div>
       <div class="card__subtitle" style="color: #8edcb6;">Macro view · Concept Atlas</div>
       <div class="text-lg font-semibold mt-1">
-        The whole architecture on one page — 6 named flows · {{ domains.length }} domains
+        The whole architecture on one page — {{ flows.length }} named flows · {{ domains.length }} domains
       </div>
       <div class="text-xs text-ink-400 mt-1">
         Pick a flow to see how patterns chain together. Click a node to open the pattern detail.

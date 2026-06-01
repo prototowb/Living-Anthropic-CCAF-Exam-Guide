@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import { RouterLink } from 'vue-router';
+import { computed, ref, watch } from 'vue';
+import { RouterLink, useRoute } from 'vue-router';
 import {
   allGlossaryEntries,
   glossaryCategories,
@@ -10,8 +10,19 @@ import {
 import { domains } from '@/data/domains';
 import PageHeader from '@/components/PageHeader.vue';
 
-const searchInput = ref('');
+const route = useRoute();
+
+// Seed the search from ?q=... so pattern-tag chips can deep-link here.
+const searchInput = ref(typeof route.query.q === 'string' ? route.query.q : '');
 const activeCategories = ref<Set<GlossaryCategory>>(new Set());
+
+// Keep the search in sync if the user navigates between two tag-chip links.
+watch(
+  () => route.query.q,
+  (q) => {
+    if (typeof q === 'string') searchInput.value = q;
+  },
+);
 
 function toggleCategory(cat: GlossaryCategory) {
   const next = new Set(activeCategories.value);

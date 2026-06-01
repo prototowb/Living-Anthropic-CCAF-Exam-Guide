@@ -7,6 +7,13 @@ import PageHeader from '@/components/PageHeader.vue';
 import FlowGraph from '@/components/FlowGraph.vue';
 
 const selectedFlowId = ref<string | null>(null);
+const showVariants = ref(false);
+
+const visibleFlows = computed(() =>
+  showVariants.value ? flows : flows.filter((f) => !f.variant),
+);
+
+const variantCount = computed(() => flows.filter((f) => f.variant).length);
 
 const selectedFlow = computed(() =>
   selectedFlowId.value ? flows.find((f) => f.id === selectedFlowId.value) ?? null : null,
@@ -32,13 +39,21 @@ const totalPatterns = computed(() => domains.reduce((a, d) => a + d.patterns.len
           @click="selectedFlowId = null"
         >No flow (all patterns)</button>
         <button
-          v-for="f in flows"
+          v-for="f in visibleFlows"
           :key="f.id"
           class="atlas__flow-chip"
-          :class="{ 'atlas__flow-chip--active': selectedFlowId === f.id }"
+          :class="{
+            'atlas__flow-chip--active': selectedFlowId === f.id,
+            'atlas__flow-chip--variant': f.variant,
+          }"
           @click="selectedFlowId = selectedFlowId === f.id ? null : f.id"
         >{{ f.title }}</button>
       </div>
+      <label class="atlas__variants-toggle">
+        <input type="checkbox" v-model="showVariants" />
+        Show variant flows
+        <span class="atlas__variants-count">+{{ variantCount }}</span>
+      </label>
     </div>
 
     <div v-if="selectedFlow" class="atlas__step-pane">

@@ -97,7 +97,13 @@ const hasFlowInfo = computed(
     <div class="flex flex-wrap items-center gap-2 mb-5">
       <span class="task-pill">Task <strong>{{ found.pattern.taskRef }}</strong></span>
       <span class="badge" :class="patternTypeBadge(found.pattern.type)">{{ found.pattern.type }}</span>
-      <span v-for="t in found.pattern.tags" :key="t" class="tag-pill">#{{ t }}</span>
+      <RouterLink
+        v-for="t in found.pattern.tags"
+        :key="t"
+        :to="{ name: 'glossary', query: { q: t } }"
+        class="tag-pill"
+        :title="`Search glossary for &quot;${t}&quot;`"
+      >#{{ t }}</RouterLink>
     </div>
 
     <div class="card mb-5">
