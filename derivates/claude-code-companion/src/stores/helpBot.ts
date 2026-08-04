@@ -53,7 +53,9 @@ export const useHelpBotStore = defineStore('helpBot', {
     escalationBudgetUsed: () => helpBot.escalationBudgetUsed,
     escalationBudgetMax: () => helpBot.escalationBudgetMax,
     /** v0.3 — adapter capabilities for the CapabilitiesBadge in the header.
-     *  Views CLAUDE.md rule 2 — components consume capabilities via the store. */
+     *  Views CLAUDE.md rule 2 — components consume capabilities via the store.
+     *  Reactive since v0.5: getAdapter() reads the shallowRef composition
+     *  root, so this invalidates when the adapter is swapped in /settings. */
     adapterCapabilities: () => {
       const a = getAdapter();
       return {

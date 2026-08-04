@@ -2,6 +2,7 @@
 import { RouterLink, useRoute } from 'vue-router';
 import { computed } from 'vue';
 import { useSettingsStore } from '@/stores/settings';
+import CapabilitiesBadge from './CapabilitiesBadge.vue';
 import HelpBotSidebar from './HelpBotSidebar.vue';
 
 const route = useRoute();
@@ -45,8 +46,15 @@ const adapterLabel = computed(() => settings.adapterLabel);
             {{ item.label }}
           </RouterLink>
         </nav>
-        <div class="ml-auto text-xs text-ink-500 mono">
-          model: {{ adapterLabel }}
+        <div class="ml-auto flex items-center gap-2 text-xs text-ink-500 mono">
+          <span>model: {{ adapterLabel }}</span>
+          <CapabilitiesBadge
+            :native-tool-use="settings.adapterCapabilities.nativeToolUse"
+            :parallel-subagents="settings.adapterCapabilities.parallelSubagents"
+            :schema-mode="settings.adapterCapabilities.schemaMode"
+            :adapter-label="adapterLabel"
+            size="xs"
+          />
         </div>
       </div>
     </header>
@@ -59,7 +67,7 @@ const adapterLabel = computed(() => settings.adapterLabel);
 
     <footer class="border-t border-ink-200 bg-white text-xs text-ink-500">
       <div class="max-w-6xl mx-auto px-4 py-3 flex items-center gap-4">
-        <span>v0.3.0-pre — beginner curriculum, all 8 stages authored</span>
+        <span>v0.5.0 — all 8 stages · adapters live (WebLLM · Ollama · LM Studio · real Claude)</span>
         <RouterLink to="/under-the-hood" class="hover:text-ink-900 underline">
           /under-the-hood
         </RouterLink>

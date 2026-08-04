@@ -159,7 +159,7 @@ When a local adapter is active, the status bar shows a **"limited"** badge with 
 
 ### Adapter contract
 
-`src/sdk/types.ts` (lifted from parent) defines a minimal `ModelAdapter` interface: `generate(messages, schema?, tools?, options?)`. Each adapter implements the *same* interface; the Tutor and Help Bot ask the active adapter for capabilities (`adapter.capabilities = { nativeToolUse, parallelSubagents, schemaMode }`) and **branch accordingly** rather than feature-detecting at the call site. This keeps the architect substrate (Scenarios 1 & 3) honest even when running locally.
+`src/sdk/types.ts` defines the `SdkAdapter` interface: `createMessage(opts)` with `{ system?, messages, jsonSchema?, tools?, toolChoice?, fewShot?, parser? }`. Each adapter implements the *same* interface; the Tutor and Help Bot ask the active adapter for capabilities (`adapter.capabilities = { nativeToolUse, parallelSubagents, schemaMode }`) and **branch accordingly** rather than feature-detecting at the call site. This keeps the architect substrate (Scenarios 1 & 3) honest even when running locally.
 
 ### Where this lands on the roadmap
 
@@ -186,7 +186,7 @@ Re-author from scratch (content, not code):
 | **v0.2.0 — Half-coverage** | Stages S1–S5. 4 sandboxes. 40 quiz items. 12 lessons. Tutor with 3 subagents (Explainer, Quizmaster, Codebase Researcher). Content pipeline (Scenario 6) runs in mock mode and produces `_generated/`. `ModelAdapter` interface stub + capabilities flags wired into Tutor and Help Bot. | ✅ Shipped — exceeded (see §9a). |
 | **v0.3.0 — Practice → reflection + local model** | All 8 stages. 6 sandboxes. Weak-spots + rung filter. Reverse-link chips. Atlas full. Tutor with scratchpad + escalation. Help Bot with all 4 MCP tools and structured errors. **WebLLM browser-native adapter** wired (Llama 3.2 3B Instruct by default, one-click download). **Ollama / LM Studio auto-detect** adapter wired. "Limited" badge + explainer when a local adapter is active. Content pipeline (Scenario 6) demonstrated running end-to-end against the local model. | ⚠ Surface ✅; local-model adapters land as honest stubs (interface-compliant, `createMessage` throws). Real wiring deferred to v0.5. |
 | **v0.4.0 — Flow of concepts** | 8 sandboxes. 60 lessons. 80 quiz items. `/under-the-hood` page fully cross-linked to source. CI workflow (Scenario 5) reviewing every PR with hooks configured. Real-SDK content-extraction script documented and runnable end-to-end. Adapter picker in settings has all four options. | ✅ Shipped — every bar hit exactly. |
-| **v0.5.0 — Adapters real** *(planned)* | **WebLLM real wiring** (lazy `await import('@mlc-ai/web-llm')` inside `createMessage`; WebGPU detection + download-progress UI; default Llama 3.2 3B Instruct, ~2 GB cached). **Ollama** auto-detect on `localhost:11434` + OpenAI-compatible chat dispatch. **LM Studio** auto-detect on `localhost:1234`. **In-app API key entry** for the Real adapter (localStorage with clear "stored on this device" warning + forget button). Scenario 6 LiveDemo drops the regex workaround once a real `schemaMode: true` adapter is active. CI workflow follow-ups (commented in `.github/workflows/claude-review.yml`): real budget accumulator (persisted month-stamped counter), fork-PR safety hardening (`pull_request_target` + scoped tokens), independent-reviewer pass, incremental-review continuity. | Sketched. |
+| **v0.5.0 — Adapters real** | **WebLLM real wiring** (lazy `await import('@mlc-ai/web-llm')` inside `createMessage`; WebGPU detection + download-progress UI; default Llama 3.2 3B Instruct, ~2 GB cached). **Ollama** auto-detect on `localhost:11434` + OpenAI-compatible chat dispatch. **LM Studio** auto-detect on `localhost:1234`. **In-app API key entry** for the Real adapter (localStorage with clear "stored on this device" warning + forget button). Scenario 6 LiveDemo drops the regex workaround once a real `schemaMode: true` adapter is active. CI workflow follow-ups (commented in `.github/workflows/claude-review.yml`): real budget accumulator (persisted month-stamped counter), fork-PR safety hardening (`pull_request_target` + scoped tokens), independent-reviewer pass, incremental-review continuity. | ⚠ Adapters ✅ (shipped 2026-08-04, see §9b); CI follow-ups deferred to v0.6. |
 
 ### 9a. Status as of `0.3.0-pre`
 
@@ -204,9 +204,22 @@ What this `package.json` version reflects: **the entire surface promised through
 - **CI.** `.github/workflows/claude-review.yml` posts structured PR reviews via `gh pr review`; `.claude/settings.json` hooks enforce a scope-guard preToolUse on Edit/Write; honest-stub cost ceiling.
 - **Content pipeline.** `scripts/extract/` runs end-to-end against a fixture adapter by default; `EXTRACT_ADAPTER=api ANTHROPIC_API_KEY=…` activates the real adapter with retry-on-validation-failure.
 
-**Deferred to v0.5:** WebLLM/Ollama/LM-Studio real `createMessage` dispatch; in-app API-key entry for the Real adapter; Scenario 6 demo's regex-workaround drop; CI follow-ups (budget accumulator, fork-PR safety, independent-reviewer pass, incremental-review continuity).
+**Deferred to v0.5:** WebLLM/Ollama/LM-Studio real `createMessage` dispatch; in-app API-key entry for the Real adapter; Scenario 6 demo's regex-workaround drop; CI follow-ups (budget accumulator, fork-PR safety, independent-reviewer pass, incremental-review continuity). *(All but the CI follow-ups landed in v0.5.0 — see §9b.)*
 
-**Tag suggestion:** bump `package.json` from `0.3.0-pre` to `0.3.0` once you're ready to call the v0.3+v0.4 surface complete (the v0.3 local-model wiring intentionally rolls into v0.5).
+### 9b. Status as of `0.5.0` (shipped 2026-08-04)
+
+The adapters-only half of the v0.5 row is live; `package.json` went `0.3.0-pre` → `0.5.0` (the v0.3 local-model bar is finally met, plus the v0.5 adapter scope).
+
+- **Composition root is reactive.** `src/sdk/index.ts` holds the active adapter in a `shallowRef`, so capability getters (e.g. `helpBot.adapterCapabilities`) invalidate on adapter swap — this fixed a frozen-badge bug in `HelpBotSidebar`.
+- **Shared OpenAI-compat plumbing** at `src/sdk/openaiCompat.ts` (pure builders/mappers + ping helper), regression-tested from `/debug`.
+- **Ollama / LM Studio** dispatch via `/v1/chat/completions` with `response_format: json_schema` (constrained decoding → honest `schemaMode: true`; `nativeToolUse`/`parallelSubagents` stay false). Detection pings run when `/settings` mounts — never at app boot.
+- **WebLLM** wired with the lazy-import strategy; WebGPU pre-check, download-progress UI + explicit "Download now" button in `/settings` (never downloads on page load). `prewarmWebLlm()` exposed for the button.
+- **In-app API key entry** (`src/components/settings/ApiKeyPanel.vue`): localStorage under `ccc:anthropic-api-key:v1`, "stored on this device" warning, forget button. Adapter *choice* still resets to Mock on refresh (no network at rest); the key persisting makes re-enabling Real one click.
+- **Scenario 6 regex workaround dropped.** The mock adapter gained a scripted glossary branch keyed on the `GlossaryDocument` schema title (`src/sdk/mockGlossary.ts`), making its `schemaMode: true` claim honest; the LiveDemo now consumes `res.data` uniformly and its manual validator gates real model output.
+- **AppShell status bar** now mounts the `⚠ limited` `CapabilitiesBadge` next to the adapter label (§7a's promised affordance).
+- **Honesty probe** (`npm run extract:probe`) gained `ollama` / `lm-studio` targets — probed only when the local server answers a ping; absent servers print SKIP and never fail CI.
+
+**Deferred to v0.6:** the four CI follow-ups (real budget accumulator, `pull_request_target` fork hardening, independent-reviewer pass, incremental-review continuity), plus hard-requiring the real `claude` CLI in the review workflow and per-touched-file dry-run invocation.
 
 ## 10. Open decisions for the first session
 

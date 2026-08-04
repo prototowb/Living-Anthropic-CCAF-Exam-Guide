@@ -10,7 +10,7 @@ Derivatives keep that philosophy and re-shape it for a different audience.
 
 | Project | Surface (what is taught) | Source (engineering substrate) | Status |
 |---|---|---|---|
-| [`claude-code-companion/`](./claude-code-companion/PROJECT_PLAN.md) | **Claude Code** for beginner end users — first session, permissions, slash commands, CLAUDE.md, skills, subagents, hooks, MCP, headless, CI | All **6 Architect — Foundations** exam scenarios realised in the implementation (hub-and-spoke tutor, MCP-shaped help-bot tools, JSON-schema content pipeline, plan-mode workflow, Claude-Code-in-CI gate) | **Planning** |
+| [`claude-code-companion/`](./claude-code-companion/PROJECT_PLAN.md) | **Claude Code** for beginner end users — first session, permissions, slash commands, CLAUDE.md, skills, subagents, hooks, MCP, headless, CI | All **6 Architect — Foundations** exam scenarios realised in the implementation (hub-and-spoke tutor, MCP-shaped help-bot tools, JSON-schema content pipeline, plan-mode workflow, Claude-Code-in-CI gate) | **v0.5.0** — full surface + live adapters (WebLLM / Ollama / LM Studio / real Claude); CI follow-ups deferred to v0.6 |
 
 ## Principles inherited from the parent
 

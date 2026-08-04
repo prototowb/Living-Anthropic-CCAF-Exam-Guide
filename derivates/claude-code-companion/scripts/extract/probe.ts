@@ -20,11 +20,21 @@
 //                   control: an adapter that *correctly* declines structured
 //                   mode must NOT be flagged. Also, when forced to claim
 //                   schemaMode=true, MUST trip the warning (TS 4.4 acceptance).
+//   - `ollama` / `lm-studio` — v0.5; both claim schemaMode=true via
+//                   OpenAI-compat constrained decoding. Probed only when the
+//                   local server responds to a ping — an absent server prints
+//                   SKIP and never fails the run (CI has no local models).
+//                   The webllm adapter also claims schemaMode=true but needs
+//                   WebGPU, so it is covered by the in-browser /debug spec
+//                   instead of this node-side probe.
 
 import { fixtureAdapter } from './lib/fixtureAdapter';
 import { createApiAdapter } from './lib/apiAdapter';
 import { validate, formatErrors } from './lib/validate';
 import { createUnreliableAdapter } from '../../src/sdk/__fixtures__/unreliableAdapter';
+import { createOllamaAdapter, OLLAMA_BASE_URL } from '../../src/sdk/ollamaAdapter';
+import { createLmStudioAdapter, LM_STUDIO_BASE_URL } from '../../src/sdk/lmStudioAdapter';
+import { pingOpenAiCompatServer, pickDefaultModel } from '../../src/sdk/openaiCompat';
 import { extractFirstJsonObject } from '../../src/agents/schemas/parse';
 import {
   glossaryDocumentSchema,
@@ -117,6 +127,45 @@ function buildTargets(): ProbeTarget[] {
   return targets;
 }
 
+// v0.5 — local OpenAI-compat servers. Detected at probe time; absent servers
+// print SKIP and never fail the run. Constrained decoding guarantees the
+// *shape* only — a 3B model will happily fabricate `_provenance` values —
+// and shape is exactly what the schemaMode contract promises.
+async function buildLocalTargets(): Promise<ProbeTarget[]> {
+  const candidates = [
+    { name: 'ollama', baseUrl: OLLAMA_BASE_URL, create: createOllamaAdapter },
+    { name: 'lm-studio', baseUrl: LM_STUDIO_BASE_URL, create: createLmStudioAdapter },
+  ] as const;
+
+  const out: ProbeTarget[] = [];
+  for (const c of candidates) {
+    const ping = await pingOpenAiCompatServer(c.baseUrl);
+    if (!ping.ok) {
+      console.log(`SKIP   ${c.name}  (no server at ${c.baseUrl})`);
+      continue;
+    }
+    const adapter = c.create({
+      model: pickDefaultModel(ping.models, /llama-?3\.2/i),
+    });
+    out.push({
+      name: c.name,
+      claimedSchemaMode: adapter.capabilities.schemaMode,
+      async probe() {
+        const res = await adapter.createMessage({
+          system:
+            'You are a structured-data extractor. Emit {entries: GlossaryEntry[]} only.',
+          messages: [{ role: 'user', content: KNOWN_SOURCE }],
+          jsonSchema: glossaryDocumentSchema as unknown as Record<string, unknown>,
+          fewShot: GLOSSARY_FEWSHOT,
+        });
+        if (res.data !== undefined) return res.data;
+        return extractFirstJsonObject(res.text) ?? { __unparseable_text__: res.text };
+      },
+    });
+  }
+  return out;
+}
+
 interface ProbeResult {
   name: string;
   claimed: boolean;
@@ -157,10 +206,11 @@ async function probeOne(t: ProbeTarget): Promise<ProbeResult> {
 }
 
 async function main() {
-  const targets = buildTargets();
-  console.log(`schemaMode honesty probe — testing ${targets.length} adapter(s)`);
+  console.log('schemaMode honesty probe');
   console.log(`(probing for glossary v${GLOSSARY_SCHEMA_VERSION} document shape)`);
   console.log('');
+  const targets = [...buildTargets(), ...(await buildLocalTargets())];
+  console.log(`testing ${targets.length} adapter(s)`);
 
   let violations = 0;
   for (const t of targets) {

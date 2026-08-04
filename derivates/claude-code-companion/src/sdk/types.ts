@@ -1,6 +1,6 @@
 // Adapter contract used by the agent layer. Mock, real Anthropic SDK, browser-native
-// (WebLLM, v0.3), and auto-detected local server (Ollama / LM Studio, v0.3) all conform
-// to this surface — swap at the composition root.
+// (WebLLM, wired v0.5), and auto-detected local server (Ollama / LM Studio, wired v0.5)
+// all conform to this surface — swap at the composition root.
 //
 // The `capabilities` flag lets Tutor and Help Bot branch up front instead of
 // feature-detecting per call. This is what keeps Scenarios 1 (MCP-shaped tools)

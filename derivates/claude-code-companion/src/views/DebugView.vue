@@ -1,7 +1,8 @@
 <script setup lang="ts">
 // /debug — dev-only surface for running in-browser regressions. Scenario 3
-// v0.3 task 9. Currently just exposes the dispatchAllSettled serial-fallback
-// harness defined in `src/agents/tutor/__test__/dispatch.spec.ts`.
+// v0.3 task 9. Exposes the dispatchAllSettled serial-fallback harness
+// (`src/agents/tutor/__test__/dispatch.spec.ts`) and, since v0.5, the
+// OpenAI-compat plumbing harness (`src/sdk/__test__/openaiCompat.spec.ts`).
 //
 // Per `src/views/CLAUDE.md` rule 2 (no agent imports from views), this is a
 // deliberate exception: the regression harness IS the test surface, and a
@@ -9,6 +10,10 @@
 
 import { ref } from 'vue';
 import { runDispatchRegression, type RegressionResult } from '@/agents/tutor/__test__/dispatch.spec';
+import {
+  runOpenAiCompatRegression,
+  type CompatRegressionResult,
+} from '@/sdk/__test__/openaiCompat.spec';
 
 const running = ref(false);
 const result = ref<RegressionResult | null>(null);
@@ -25,6 +30,25 @@ async function runRegression() {
     };
   } finally {
     running.value = false;
+  }
+}
+
+const compatRunning = ref(false);
+const compatResult = ref<CompatRegressionResult | null>(null);
+
+async function runCompatRegression() {
+  compatRunning.value = true;
+  compatResult.value = null;
+  try {
+    compatResult.value = await runOpenAiCompatRegression();
+  } catch (e) {
+    compatResult.value = {
+      pass: false,
+      reasons: [`Harness threw: ${e instanceof Error ? e.message : String(e)}`],
+      checksRun: 0,
+    };
+  } finally {
+    compatRunning.value = false;
   }
 }
 </script>
@@ -88,6 +112,46 @@ async function runRegression() {
           <summary class="cursor-pointer text-ink-600 hover:text-ink-900">Reply preview</summary>
           <pre class="mono mt-2 p-3 bg-ink-900 text-ink-100 rounded overflow-auto whitespace-pre-wrap">{{ result.reply }}</pre>
         </details>
+      </div>
+    </article>
+
+    <article class="p-4 rounded-lg border border-ink-200 bg-white space-y-3">
+      <div>
+        <h2 class="font-medium">OpenAI-compat regression — adapter plumbing</h2>
+        <p class="text-sm text-ink-600 mt-1">
+          Exercises the pure builders/mappers in
+          <code class="mono text-xs px-1 py-0.5 rounded bg-ink-100">src/sdk/openaiCompat.ts</code>
+          shared by the Ollama, LM Studio, and WebLLM adapters: message
+          ordering, <code class="mono text-xs">response_format</code> gating,
+          finish-reason mapping, and safe parsing. Offline, no server needed.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="px-4 py-2 bg-ink-900 text-white rounded text-sm disabled:opacity-50"
+        :disabled="compatRunning"
+        @click="runCompatRegression"
+      >
+        {{ compatRunning ? 'Running…' : 'Run OpenAI-compat regression' }}
+      </button>
+
+      <div v-if="compatResult" class="space-y-2">
+        <div
+          class="rounded p-3 text-sm"
+          :class="
+            compatResult.pass
+              ? 'bg-stage-s3/10 border border-stage-s3/30 text-stage-s3'
+              : 'bg-stage-s5/10 border border-stage-s5/30 text-stage-s5'
+          "
+        >
+          <strong>{{ compatResult.pass ? 'PASS' : 'FAIL' }}</strong>
+          <span class="ml-2">— {{ compatResult.checksRun }} checks</span>
+        </div>
+
+        <ul v-if="!compatResult.pass" class="text-sm text-ink-700 list-disc pl-5 space-y-1">
+          <li v-for="(r, i) in compatResult.reasons" :key="i">{{ r }}</li>
+        </ul>
       </div>
     </article>
   </section>

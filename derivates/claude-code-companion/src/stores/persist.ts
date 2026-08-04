@@ -20,3 +20,11 @@ export function save<T>(key: string, value: T): void {
     /* quota or sandboxed — ignore */
   }
 }
+
+export function remove(key: string): void {
+  try {
+    localStorage.removeItem(PREFIX + key);
+  } catch {
+    /* sandboxed — ignore */
+  }
+}

@@ -13,15 +13,13 @@
 //   4. Inline syntactic validation of the returned shape (TS 4.4).
 //   5. A typed result the page renders without re-parsing prose (TS 5.1).
 //
-// Workaround documented in the v0.4 sprint spec: the mock adapter's
-// classifyIntent only handles the Tutor intent-classification shape — it does
-// NOT actually extract glossary records. We still issue the createMessage
-// call (so the schema + few-shot + toolChoice surface is exercised end to
-// end), then bypass the mock's returned `data` and parse the textarea with a
-// tiny in-component regex extractor. The educational pieces (schema, few-shot,
-// validation) remain visible; the model is not the system under test on this
-// card. A real adapter against the same call shape returns parsed data via
-// tool_use without the workaround.
+// Since v0.5 this demo consumes the adapter's structured response directly:
+// every adapter that claims `schemaMode: true` returns `{ entries }` as
+// `res.data` — real Claude via a forced `extract` tool_use, local adapters
+// via constrained decoding, and the mock via a scripted glossary branch
+// keyed on the schema title (src/sdk/mockGlossary.ts). The v0.4 regex
+// workaround (this component parsing its own textarea) is gone; the manual
+// validator below is now a genuine gate on model output, not a self-check.
 //
 // Constraint: NO Ajv in the SPA bundle. The validator below is a manual
 // property-check pass. The pipeline-side validator (scripts/extract/lib/
@@ -49,6 +47,22 @@ const glossarySchema = {
     aliases: { type: 'array', items: { type: 'string', minLength: 1 } },
     stageId: { type: 'string', pattern: '^s[1-8]$' },
     rung: { type: 'string', enum: ['B', 'I', 'A'] },
+  },
+} as const;
+
+// The document-level wrapper actually sent to the adapter. The prompt asks
+// for `{ entries: GlossaryEntry[] }`, so the schema must say that too — a
+// forced `extract` tool_use on the real adapter returns exactly one value
+// matching this shape. The `GlossaryDocument` title is also what the mock's
+// scripted glossary branch keys on (src/sdk/mockGlossary.ts).
+const glossaryDocumentSchema = {
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  title: 'GlossaryDocument',
+  type: 'object',
+  required: ['entries'],
+  additionalProperties: false,
+  properties: {
+    entries: { type: 'array', items: glossarySchema },
   },
 } as const;
 
@@ -131,11 +145,7 @@ function loadExample(id: string) {
   clearResult();
 }
 
-// ─── In-component regex extractor (the demo workaround) ───────────────────
-// Matches `## Term\n\nDefinition…` markdown blocks. The mock adapter does
-// NOT do this — it's a tiny educational shim. The demo still issues a
-// real createMessage call so learners see the schema + few-shot wire shape.
-
+// The extracted record shape (mirrors glossarySchema).
 interface GlossaryRecord {
   term: string;
   definition: string;
@@ -144,27 +154,8 @@ interface GlossaryRecord {
   rung: 'B' | 'I' | 'A';
 }
 
-function parseGlossaryMarkdown(md: string): GlossaryRecord[] {
-  const out: GlossaryRecord[] = [];
-  // Split on `## ` headings keeping the heading text.
-  const re = /^##\s+(.+?)\s*\n+([^\n][\s\S]*?)(?=\n##\s|\s*$)/gm;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(md)) !== null) {
-    const term = m[1].trim();
-    const definition = m[2].trim().replace(/\s+/g, ' ');
-    if (!term || definition.length < 1) continue;
-    out.push({ term, definition, rung: guessRung(definition) });
-  }
-  return out;
-}
-
-// Cheap heuristic so the demo populates `rung` (a required field). Real
-// extraction would have the model decide; this is the workaround stand-in.
-function guessRung(definition: string): 'B' | 'I' | 'A' {
-  const lower = definition.toLowerCase();
-  if (/ci|headless|grammar|json mode|webllm|ollama/.test(lower)) return 'A';
-  if (/subagent|skill|mcp|hook|plan mode/.test(lower)) return 'I';
-  return 'B';
+interface GlossaryDocument {
+  entries: GlossaryRecord[];
 }
 
 // ─── Manual validator (Ajv-free) ──────────────────────────────────────────
@@ -272,22 +263,19 @@ async function runExtraction() {
   runError.value = null;
   const adapter = getAdapter();
   try {
-    // Issue the real createMessage call so the schema + few-shot + toolChoice
-    // surface is exercised end to end. We don't *use* the mock's returned
-    // data (its classifyIntent path is for the Tutor, not for glossary) —
-    // see the file header for the workaround rationale.
-    await adapter.createMessage({
+    const res = await adapter.createMessage<GlossaryDocument>({
       system:
         'Extract glossary entries from the supplied markdown. Each `## Term` heading is an entry; the paragraph beneath is its definition. Return an object `{ entries: GlossaryEntry[] }` matching the schema.',
       messages: [{ role: 'user', content: sourceText.value }],
-      jsonSchema: glossarySchema as unknown as Record<string, unknown>,
+      jsonSchema: glossaryDocumentSchema as unknown as Record<string, unknown>,
       fewShot: FEW_SHOT,
       toolChoice: { type: 'tool', name: 'extract' },
     });
 
-    // Workaround extractor (regex over the textarea). On a real adapter we
-    // would consume `response.data` / `response.toolUses[0].input` directly.
-    const records = parseGlossaryMarkdown(sourceText.value);
+    // Every schemaMode adapter returns the document as `data`. If it's
+    // missing or shapeless, the validator reports it — that IS the TS 4.4
+    // lesson (validate before you trust).
+    const records = Array.isArray(res.data?.entries) ? res.data.entries : [];
     const issues = validateAll(records);
 
     result.value = {

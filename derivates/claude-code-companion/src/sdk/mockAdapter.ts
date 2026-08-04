@@ -3,13 +3,20 @@
 // and Help Bot (Scenario 1 support agent) without an API key.
 //
 // The real adapter (realAdapter.ts) is a thin wrapper around @anthropic-ai/sdk.
-// WebLLM + Ollama adapters arrive in v0.3. All share this interface.
+// WebLLM / Ollama / LM Studio adapters are wired since v0.5. All share this
+// interface.
+//
+// The jsonSchema branch honours two schema shapes: the Tutor's intent
+// classification (default) and the Scenario 6 glossary document (keyed on
+// the schema title — see ./mockGlossary.ts). That keeps the mock's
+// `schemaMode: true` claim honest for every schema the app actually sends.
 
 import type {
   CreateMessageOptions,
   CreateMessageResponse,
   SdkAdapter,
 } from './types';
+import { isGlossarySchema, parseGlossaryMarkdown } from './mockGlossary';
 
 function rough(text: string) {
   return { inputTokens: Math.ceil(text.length / 4), outputTokens: 0 };
@@ -179,6 +186,12 @@ export const mockAdapter: SdkAdapter = {
     await new Promise((r) => setTimeout(r, 200 + Math.random() * 300));
 
     if (opts.jsonSchema) {
+      if (isGlossarySchema(opts.jsonSchema)) {
+        const doc = { entries: parseGlossaryMarkdown(prompt) };
+        const fauxJson = JSON.stringify(doc);
+        const data = (opts.parser ? opts.parser(fauxJson) : doc) as unknown as T;
+        return { text: fauxJson, data, stopReason: 'end_turn', usage: rough(prompt) };
+      }
       const intent = classifyIntent(prompt);
       const fauxJson = JSON.stringify(intent);
       const data = (opts.parser ? opts.parser(fauxJson) : intent) as unknown as T;

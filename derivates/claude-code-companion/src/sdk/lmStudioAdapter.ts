@@ -1,24 +1,54 @@
-// LM Studio adapter stub.
+// LM Studio adapter — local server on localhost:1234 (PROJECT_PLAN.md §7a).
 //
-// Placeholder for the v0.5 local-server adapter (PROJECT_PLAN.md §7a).
-// In v0.5 this will ping `localhost:1234` and dispatch via LM Studio's
-// OpenAI-compatible API. Today it just throws on createMessage.
+// Same OpenAI-compatible dispatch as ollamaAdapter; see that file for the
+// capability rationale. One LM Studio-specific wrinkle: its local server has
+// CORS OFF by default, so browser detection fails until the user enables
+// CORS in the server settings (Developer tab) — the error message says so.
 
-import type { CreateMessageResponse, SdkAdapter } from './types';
+import type { CreateMessageOptions, CreateMessageResponse, SdkAdapter } from './types';
+import { buildChatCompletionBody, mapChatCompletionResponse } from './openaiCompat';
+import type { OpenAiChatResponse } from './openaiCompat';
 
-export function createLmStudioAdapter(_opts?: { baseUrl?: string }): SdkAdapter {
+export const LM_STUDIO_BASE_URL = 'http://localhost:1234';
+
+export function createLmStudioAdapter(opts?: {
+  baseUrl?: string;
+  model?: string;
+}): SdkAdapter {
+  const baseUrl = opts?.baseUrl ?? LM_STUDIO_BASE_URL;
+  const model = opts?.model ?? 'local-model';
   return {
     kind: 'lm-studio',
-    label: 'LM Studio (stub — auto-detect arrives v0.5)',
+    label: `LM Studio (${model})`,
     capabilities: {
       nativeToolUse: false,
       parallelSubagents: false,
-      schemaMode: false,
+      schemaMode: true,
     },
-    async createMessage<T = unknown>(): Promise<CreateMessageResponse<T>> {
-      throw new Error(
-        'LM Studio adapter is not yet wired. Switch to Mock or Real Claude in /settings, or wait for v0.5.',
-      );
+    async createMessage<T = unknown>(
+      callOpts: CreateMessageOptions<T>,
+    ): Promise<CreateMessageResponse<T>> {
+      let res: Response;
+      try {
+        res = await fetch(`${baseUrl}/v1/chat/completions`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(buildChatCompletionBody(callOpts, model)),
+        });
+      } catch {
+        throw new Error(
+          `Could not reach LM Studio at ${baseUrl}. Start the local server in LM Studio's ` +
+            'Developer tab and enable CORS in the server settings.',
+        );
+      }
+      if (!res.ok) {
+        throw new Error(
+          `LM Studio returned HTTP ${res.status}. Check that a model is loaded and that ` +
+            'your LM Studio version supports structured output (≥ 0.3).',
+        );
+      }
+      const json = (await res.json()) as OpenAiChatResponse;
+      return mapChatCompletionResponse<T>(json, callOpts);
     },
   };
 }
