@@ -1,0 +1,44 @@
+diff --git a/src/services/sessionCache.ts b/src/services/sessionCache.ts
+new file mode 100644
+index 0000000..9f8e7d6
+--- /dev/null
++++ b/src/services/sessionCache.ts
+@@ -0,0 +1,38 @@
++import { fetchSession, persistSession, type Session } from './sessionStore';
++
++const TTL_MS = 5 * 60 * 1000;
++
++interface CacheEntry {
++  session: Session;
++  expiresAt: number;
++}
++
++const cache = new Map<string, CacheEntry>();
++
++export function getSession(id: string): Session | null {
++  const entry = cache.get(id);
++  if (entry == null) return null;
++  if (entry.expiresAt > Date.now()) {
++    cache.delete(id);
++    return null;
++  }
++  return entry.session;
++}
++
++export async function refreshSession(id: string): Promise<Session> {
++  const session = fetchSession(id);
++  cache.set(id, { session, expiresAt: Date.now() + TTL_MS });
++  return session;
++}
++
++export function evictExpired(): number {
++  let evicted = 0;
++  for (const [id, entry] of cache) {
++    if (entry.expiresAt <= Date.now()) {
++      cache.delete(id);
++      evicted += 1;
++    }
++  }
++  persistSession([...cache.values()].map((e) => e.session));
++  return evicted;
++}

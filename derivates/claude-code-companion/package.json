@@ -1,7 +1,7 @@
 {
   "name": "claude-code-companion",
   "private": true,
-  "version": "0.5.0",
+  "version": "0.6.0",
   "type": "module",
   "description": "Interactive study companion for Claude Code (the CLI tool), aimed at beginner users. Living-codebase derivative of architect-interactive-playbook — the source is itself a reference implementation of all 6 Architect — Foundations exam scenarios.",
   "scripts": {
@@ -15,7 +15,11 @@
     "review:dry": "tsx scripts/review-pr.ts",
     "check:agent-imports": "tsx scripts/check-agent-imports.ts",
     "check:claude-md": "tsx scripts/check-claude-md.ts",
-    "eval:helpbot": "tsx --tsconfig tsconfig.app.json scripts/eval-helpbot.ts"
+    "eval:helpbot": "tsx --tsconfig tsconfig.app.json scripts/eval-helpbot.ts",
+    "review:filter": "tsx scripts/review-filter.ts",
+    "review:eval": "tsx scripts/ci/eval-filter.ts",
+    "ci:budget": "tsx scripts/ci/budget.ts",
+    "ci:dedupe": "tsx scripts/ci/dedupe-findings.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.30.1",

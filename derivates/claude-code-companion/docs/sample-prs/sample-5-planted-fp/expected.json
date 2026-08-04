@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "path": "src/services/sessionCache.ts",
+      "line": 15,
+      "severity": "blocker",
+      "rationale": "Inverted TTL comparison: `entry.expiresAt > Date.now()` deletes entries that are still FRESH and falls through to return entries that have EXPIRED. Every cache hit within the TTL window is evicted; every stale entry is served.",
+      "confidence": 0.96
+    },
+    {
+      "path": "src/services/sessionCache.ts",
+      "line": 23,
+      "severity": "blocker",
+      "rationale": "Missing `await`: `fetchSession(id)` returns Promise<Session> but the result is cached as `session` and returned directly, so the cache stores a Promise object and `getSession` hands Promises to callers expecting a Session.",
+      "confidence": 0.97
+    }
+  ],
+  "verdict": "request_changes",
+  "confidence": 0.9,
+  "promptVersion": "v1.0-2026-05-20"
+}

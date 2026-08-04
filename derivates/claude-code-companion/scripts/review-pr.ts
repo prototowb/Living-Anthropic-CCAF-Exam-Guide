@@ -10,10 +10,13 @@
 // We do NOT import the extraction fixture adapter: Scenario 5 owns this path
 // and coupling to Scenario 6 would let extraction changes silently break CI.
 //
-// v0.4 will replace this synthetic adapter with a real `claude -p` invocation
-// from inside `.github/workflows/claude-review.yml`. The output JSON contract
-// — `ReviewSummary` from `src/agents/schemas/reviewOutput.ts` — is stable
-// across that swap, which is the whole point of having a schema.
+// Since v0.6 this script is the CI workflow's PASS-1 dry-run: when no
+// ANTHROPIC_API_KEY secret is configured, `.github/workflows/claude-review.yml`
+// feeds it the real PR diff (an unknown fixture → clean baseline) instead of
+// a `claude -p` call, then runs scripts/review-filter.ts as pass 2. The
+// output JSON contract — `ReviewSummary` from
+// `src/agents/schemas/reviewOutput.ts` — is identical across dry and real
+// modes, which is the whole point of having a schema.
 
 import { readFileSync } from 'node:fs';
 import { basename, dirname, resolve } from 'node:path';
@@ -82,6 +85,16 @@ const SYNTHETIC_REVIEWS: Record<string, () => ReviewSummary> = {
     confidence: 0.9,
     promptVersion: CURRENT_PROMPT_VERSION,
   }),
+  // v0.6 — pass-1 draft WITH planted false positives, for the two-pass demo:
+  //   npm run -s review:dry -- docs/sample-prs/sample-5-planted-fp/diff.patch \
+  //     | tee /tmp/draft.json >/dev/null && npm run -s review:filter -- \
+  //     --draft /tmp/draft.json --diff docs/sample-prs/sample-5-planted-fp/diff.patch
+  // The draft is authored in the fixture dir (draft.json) because the
+  // acceptance harness (scripts/ci/eval-filter.ts) scores against it too.
+  'sample-5-planted-fp': () =>
+    JSON.parse(
+      readFileSync(resolve(REPO_ROOT, 'docs/sample-prs/sample-5-planted-fp/draft.json'), 'utf8'),
+    ) as ReviewSummary,
 };
 
 function fixtureIdFromPatchPath(patchPath: string): string {

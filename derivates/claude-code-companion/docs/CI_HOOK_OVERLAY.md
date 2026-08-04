@@ -79,8 +79,11 @@ Notes:
   most-specific-pattern wins, so the three allow-listed hosts pass and
   everything else is denied. This is the documented pattern — confirm against
   the workflow's smoke test before relying on it.
-- The `WebFetch(https://api.github.com/**)` entry is for v0.4 task D
-  (incremental review continuity) — fetching the prior review comment.
+- The `WebFetch(https://api.github.com/**)` entry is for incremental review
+  continuity (deepening task D, landed v0.6) — fetching the prior review
+  comment. The workflow itself fetches it with `gh api` before invoking
+  claude; the allow-list entry lets the model re-check a finding's status
+  mid-review if it needs to.
 - All four mandatory deny families from the v0.3 plan are present
   (`Bash(rm *)`, `Bash(git push *)`, `Bash(curl * | bash)`, `WebFetch` outside
   the allow-list). The `sudo`, `shutdown`, `mkfs`, fork-bomb entries are CI-
@@ -92,8 +95,8 @@ The workflow must export these BEFORE invoking `claude -p`:
 
 | Env var | Source | Purpose |
 |---|---|---|
-| `CLAUDE_TOUCHED_FILES` | `git diff origin/${{ github.base_ref }}...HEAD --name-only \| tr '\n' ':'` | Colon-separated list read by `scope-guard.sh`. |
-| `CLAUDE_PR_NUMBER` | `${{ github.event.pull_request.number }}` | Used by v0.4 task D for prior-review fetch. |
+| `CLAUDE_TOUCHED_FILES` | `gh api repos/…/pulls/N/files --jq '.[].filename' \| tr '\n' ':'` (v0.6: API-derived — fork code is never checked out) | Colon-separated list read by `scope-guard.sh`. |
+| `CLAUDE_PR_NUMBER` | `${{ github.event.pull_request.number }}` | Prior-review fetch (incremental continuity, landed v0.6). |
 | `CLAUDE_PROMPT_VERSION` | `grep -oE 'v[0-9]+\\.[0-9]+-[0-9-]+' docs/CI_REVIEW_PROMPT.md \| head -1` | Asserted to equal `ReviewSummary.promptVersion` for drift detection. |
 
 ## Manual verification (before v0.4 wires this into Actions)

@@ -67,7 +67,7 @@ const adapterLabel = computed(() => settings.adapterLabel);
 
     <footer class="border-t border-ink-200 bg-white text-xs text-ink-500">
       <div class="max-w-6xl mx-auto px-4 py-3 flex items-center gap-4">
-        <span>v0.5.0 — all 8 stages · adapters live (WebLLM · Ollama · LM Studio · real Claude)</span>
+        <span>v0.6.0 — all 8 stages · live adapters · hardened two-pass CI review</span>
         <RouterLink to="/under-the-hood" class="hover:text-ink-900 underline">
           /under-the-hood
         </RouterLink>
