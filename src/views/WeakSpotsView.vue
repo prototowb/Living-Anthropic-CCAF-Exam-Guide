@@ -3,7 +3,12 @@ import { computed, ref, watch } from 'vue';
 import { RouterLink } from 'vue-router';
 import { getQuestion, getQuizSection, type OptionLetter } from '@/data/quizData';
 import { useQuizStore } from '@/stores/quiz';
-import { useWeakSpotsStore } from '@/stores/weakSpots';
+import {
+  intervalLabel,
+  SCHEDULES,
+  useWeakSpotsStore,
+  type ScheduleId,
+} from '@/stores/weakSpots';
 import { getPatternsForQuestion } from '@/data/reverseLinks';
 import PageHeader from '@/components/PageHeader.vue';
 
@@ -123,13 +128,35 @@ function confirmReset() {
     restart();
   }
 }
+
+// AIP-049 — scheduler tunables. Picking a preset reschedules existing
+// entries immediately (see the store's setSchedule).
+const scheduleOptions = Object.values(SCHEDULES);
+const activeScheduleId = computed(() => weakSpots.scheduleId);
+
+function ladder(id: ScheduleId): string {
+  return ([1, 2, 3, 4, 5] as const)
+    .map((b) => intervalLabel(SCHEDULES[id].intervals[b]))
+    .join(' → ');
+}
+
+function pickSchedule(id: ScheduleId) {
+  weakSpots.setSchedule(id);
+}
+
+const subtitle = computed(
+  () =>
+    `A Leitner-box scheduler. Wrong-answered questions enter box 1 and resurface in ${intervalLabel(
+      weakSpots.schedule.intervals[1],
+    )}. Each correct re-answer promotes them — wrong demotes back to box 1.`,
+);
 </script>
 
 <template>
   <PageHeader
     eyebrow="Spaced repetition"
     title="Practice your weak spots"
-    subtitle="A Leitner-box scheduler. Wrong-answered questions enter box 1 and resurface in 10 minutes. Each correct re-answer promotes them — wrong demotes back to box 1."
+    :subtitle="subtitle"
   />
 
   <section class="weak-spots">
@@ -153,6 +180,31 @@ function confirmReset() {
         Box {{ b }}: <strong>{{ boxCounts[b] }}</strong>
       </span>
     </div>
+
+    <details class="weak-spots__scheduler">
+      <summary>
+        Scheduler: <strong>{{ weakSpots.schedule.label }}</strong>
+        <span class="weak-spots__scheduler-ladder">{{ ladder(activeScheduleId) }}</span>
+      </summary>
+      <div class="weak-spots__scheduler-options">
+        <button
+          v-for="s in scheduleOptions"
+          :key="s.id"
+          type="button"
+          class="weak-spots__scheduler-option"
+          :class="{ 'weak-spots__scheduler-option--active': s.id === activeScheduleId }"
+          @click="pickSchedule(s.id)"
+        >
+          <span class="weak-spots__scheduler-option-label">{{ s.label }}</span>
+          <span class="weak-spots__scheduler-option-ladder">{{ ladder(s.id) }}</span>
+          <span class="weak-spots__scheduler-option-blurb">{{ s.blurb }}</span>
+        </button>
+      </div>
+      <p class="weak-spots__scheduler-note">
+        Switching reschedules everything already enrolled — due dates recompute
+        from each question's last review. Boxes and streaks are untouched.
+      </p>
+    </details>
 
     <div v-if="totalEnrolled === 0" class="weak-spots__empty">
       No weak spots yet — every wrong quiz answer enrolls automatically.

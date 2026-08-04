@@ -1,7 +1,7 @@
 {
   "name": "architect-interactive-playbook",
   "private": true,
-  "version": "0.5.0",
+  "version": "0.5.2",
   "type": "module",
   "description": "Interactive playbook for the Claude Certified Architect exam — quiz, study guide, tutor, and pattern showcase. The codebase itself is a living study guide.",
   "scripts": {

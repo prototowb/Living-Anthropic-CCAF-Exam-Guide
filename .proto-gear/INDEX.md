@@ -16,7 +16,56 @@
 
 ## Capability Summary
 
-_Auto-generated from `metadata.yaml`. Run `pg sync-indexes` to refresh. The prose sections below are hand-written and preserved across regeneration._
+_Auto-generated from `metadata.yaml`. Hand-edits inside this block are overwritten by `pg sync-indexes`._
+
+### Skills (7)
+
+| ID | Name | Description | Triggers |
+|----|------|-------------|----------|
+| `skills/code-review` | Code Review Best Practices | Systematic code review methodology for maintaining code quality and knowledge sharing | `code review`, `pull request`, `pr review`, `review code` |
+| `skills/debugging` | Debugging & Troubleshooting | Systematic debugging methodology for identifying and fixing software issues | `debug`, `troubleshoot`, `bug`, `error` |
+| `skills/documentation` | Technical Documentation | Writing clear, maintainable technical documentation for code and projects | `documentation`, `docs`, `readme`, `write docs` |
+| `skills/performance` | Performance Optimization | Systematic performance optimization and profiling techniques | `performance`, `optimize`, `slow`, `profiling` |
+| `skills/refactoring` | Code Refactoring | Systematic code refactoring techniques for improving code quality without changing behavior | `refactor`, `clean up`, `improve code`, `code smell` |
+| `skills/security` | Security Best Practices | Security best practices and vulnerability prevention techniques | `security`, `vulnerability`, `authentication`, `authorization` |
+| `skills/testing` | Test-Driven Development | TDD methodology with red-green-refactor cycle for quality code | `write tests`, `testing`, `test coverage`, `tdd` |
+
+**Detail**: [skills/INDEX.md](skills/INDEX.md)
+
+### Workflows (13)
+
+| ID | Name | Description | Triggers |
+|----|------|-------------|----------|
+| `workflows/bug-fix` | Bug Fix Workflow | Systematic workflow for investigating and fixing software defects | `bug`, `defect`, `error`, `issue` |
+| `workflows/cicd-setup` | CI/CD Setup Workflow | Setting up continuous integration and deployment pipelines | `ci cd`, `continuous integration`, `pipeline`, `automation` |
+| `workflows/code-review-process` | Code Review Process Workflow | Complete PR creation, review, approval, and merge workflow | `code review`, `pull request`, `PR`, `merge` |
+| `workflows/complete-release` | Complete Release Workflow | End-to-end release workflow combining all release phases | `complete release`, `full release cycle`, `end-to-end release` |
+| `workflows/dependency-update` | Dependency Update Workflow | Systematic workflow for updating project dependencies safely | `update dependencies`, `upgrade packages`, `dependency maintenance`, `security updates` |
+| `workflows/documentation-update` | Documentation Update Workflow | Systematic workflow for maintaining and updating project documentation | `update docs`, `documentation`, `improve docs`, `docs maintenance` |
+| `workflows/feature-development` | Feature Development Workflow | Complete workflow for developing new features from planning to deployment | `new feature`, `implement feature`, `build feature`, `add functionality` |
+| `workflows/finalize-release` | Finalize Release Workflow | Final steps for completing and announcing a release | `finalize release`, `post-release`, `announce release` |
+| `workflows/hotfix` | Hotfix Workflow | Emergency workflow for critical production issues requiring immediate fixes | `hotfix`, `emergency`, `production issue`, `critical bug` |
+| `workflows/incident-response` | Incident Response Workflow | Production issue handling from detection through resolution and post-mortem | `incident`, `outage`, `production down`, `alert` |
+| `workflows/migration` | Migration Workflow | Breaking change and data migration workflow with rollback planning | `migration`, `breaking change`, `schema change`, `data migration` |
+| `workflows/monitoring-setup` | Monitoring Setup Workflow | Setting up monitoring, logging, and alerting for production systems | `monitoring`, `logging`, `alerting`, `observability` |
+| `workflows/release` | Release Workflow | Complete release process from preparation to deployment | `release`, `deploy`, `version`, `publish` |
+
+**Detail**: [workflows/INDEX.md](workflows/INDEX.md)
+
+### Slash Commands (4)
+
+| ID | Name | Description | Triggers |
+|----|------|-------------|----------|
+| `commands/analyze-coverage` | Analyze Coverage | Run and analyze test coverage for the project | `/analyze-coverage`, `coverage`, `test coverage`, `analyze coverage` |
+| `commands/create-ticket` | Create Ticket | Create and properly document a ticket in PROJECT_STATUS.md | `/create-ticket`, `create ticket`, `new ticket`, `add ticket` |
+| `commands/generate-changelog` | Generate Changelog | Generate or update CHANGELOG.md from git history | `/generate-changelog`, `changelog`, `generate changelog`, `update changelog` |
+| `commands/update-status` | Update Status | Update ticket status in PROJECT_STATUS.md | `/update-status`, `/us`, `update status`, `change status` |
+
+**Detail**: [commands/INDEX.md](commands/INDEX.md)
+
+### Agents (0)
+
+_No agents installed._
 
 <!-- proto-gear:capability-index end -->
 

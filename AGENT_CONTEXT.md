@@ -13,7 +13,7 @@
 | `AGENTS.md` | Agent orchestration, roles, pre-flight checklist | First session or unclear on process |
 | `PROJECT_STATUS.md` | Current sprint, active tickets, project state | Every session before starting work |
 | `PROJECT_SPECIFICATIONS.md` | Project planning doc — source for architecture | Starting features or design work (if exists) |
-| `PROJECT_ARCHITECTURE.md` *(not present)* | Project-specific architecture (agent-extracted) | Design decisions (if exists) |
+| `PROJECT_ARCHITECTURE.md` | Project-specific architecture (agent-extracted) | Design decisions (if exists) |
 | `BRANCHING.md` | Git workflow, branch naming, commit format | Before any git operations |
 | `TESTING.md` | TDD patterns, test pyramid, coverage targets | When writing tests |
 | `.proto-gear/INDEX.md` | Capability catalog (full reference) | When the skim below is insufficient |
@@ -109,10 +109,10 @@ When the user's prose contains these keywords, load the matching capability befo
 ## 🌐 Project
 
 - **Project**: architect-interactive-playbook
-- **Tech / type**: None
+- **Tech / type**: Single-page application (browser-only)
 - **Proto Gear version**: n/a
 - **Last release**: n/a
 - **Capabilities installed**: 7 skills, 13 workflows, 4 commands
-- **Generated**: 2026-05-15 15:30
+- **Generated**: 2026-08-05 00:34
 
 <!-- proto-gear:agent-context end -->

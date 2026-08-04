@@ -4,9 +4,217 @@
 
 <!-- proto-gear:capability-index begin -->
 
-## Available Workflows
+## Available Workflows (13)
 
-_Auto-generated from `metadata.yaml`. Run `pg sync-indexes` to refresh. The prose around this marker is hand-written and is preserved across regeneration._
+_Auto-generated from `metadata.yaml`. Hand-edits inside this block are overwritten by `pg sync-indexes`._
+
+### Bug Fix Workflow
+
+- **ID**: `workflows/bug-fix`
+- **File**: `bug-fix/WORKFLOW.md`
+- **Version**: 1.0.0
+- **Status**: stable
+- **Category**: maintenance
+- **Description**: Systematic workflow for investigating and fixing software defects
+- **Tags**: bug, fix, debugging, workflow, testing, regression
+- **Triggers**: "bug", "defect", "error", "issue", "broken", "not working", "failing"
+- **Contexts**: When existing functionality is broken; After bug reports; When tests are failing; During maintenance
+- **Dependencies**: required: `skills/debugging`, `skills/testing`; optional: `commands/create-ticket`, `skills/code-review`; suggested: `commands/analyze-coverage`
+- **Agent roles**: Bug Fix Agent, Debugging Agent, Maintenance Agent, Full-Stack Developer Agent, Backend Agent, Frontend Agent
+- **Steps**: 9
+- **Estimated duration**: 1-3 hours per bug
+
+### CI/CD Setup Workflow
+
+- **ID**: `workflows/cicd-setup`
+- **File**: `cicd-setup/WORKFLOW.md`
+- **Version**: 1.0.0
+- **Status**: stable
+- **Category**: devops
+- **Description**: Setting up continuous integration and deployment pipelines
+- **Tags**: ci, cd, devops, automation, pipeline, continuous-integration
+- **Triggers**: "ci cd", "continuous integration", "pipeline", "automation", "github actions", "jenkins"
+- **Contexts**: When setting up new project; For automation needs; Before production deployment
+- **Dependencies**: optional: `skills/testing`; suggested: `skills/documentation`, `workflows/monitoring-setup`
+- **Agent roles**: DevOps Agent, CI/CD Specialist, Infrastructure Agent
+- **Steps**: 8
+- **Estimated duration**: 2-4 hours
+
+### Code Review Process Workflow
+
+- **ID**: `workflows/code-review-process`
+- **File**: `code-review-process/WORKFLOW.md`
+- **Version**: 1.0.0
+- **Status**: stable
+- **Category**: development
+- **Description**: Complete PR creation, review, approval, and merge workflow
+- **Tags**: pr, pull-request, review, merge, collaboration, code-quality, github
+- **Triggers**: "code review", "pull request", "PR", "merge", "review", "approve", "create pr", "open pr"
+- **Contexts**: After feature implementation is complete; Before merging to main/development; When requesting feedback on code; During collaborative development
+- **Dependencies**: required: `skills/code-review`; optional: `skills/testing`, `commands/update-status`; suggested: `workflows/feature-development`, `workflows/bug-fix`
+- **Agent roles**: Code Review Agent, Full-Stack Developer Agent, Backend Agent, Frontend Agent, Team Lead Agent
+- **Steps**: 7
+- **Estimated duration**: 30 min - 4 hours (depends on review cycles)
+
+### Complete Release Workflow
+
+- **ID**: `workflows/complete-release`
+- **File**: `complete-release/WORKFLOW.md`
+- **Version**: 1.0.0
+- **Status**: stable
+- **Category**: release
+- **Description**: End-to-end release workflow combining all release phases
+- **Tags**: release, complete, end-to-end, deployment, comprehensive
+- **Triggers**: "complete release", "full release cycle", "end-to-end release"
+- **Contexts**: For major releases; When comprehensive release needed
+- **Dependencies**: optional: `workflows/release`, `workflows/finalize-release`; suggested: `commands/generate-changelog`
+- **Agent roles**: Release Manager Agent, DevOps Agent, Team Lead Agent
+- **Steps**: 15
+- **Estimated duration**: 2-4 hours
+
+### Dependency Update Workflow
+
+- **ID**: `workflows/dependency-update`
+- **File**: `dependency-update/WORKFLOW.md`
+- **Version**: 1.0.0
+- **Status**: stable
+- **Category**: maintenance
+- **Description**: Systematic workflow for updating project dependencies safely
+- **Tags**: dependencies, update, maintenance, security, packages
+- **Triggers**: "update dependencies", "upgrade packages", "dependency maintenance", "security updates"
+- **Contexts**: When dependencies are outdated; For security patches; Regular maintenance
+- **Dependencies**: optional: `skills/testing`; suggested: `skills/security`, `commands/generate-changelog`
+- **Agent roles**: Maintenance Agent, DevOps Agent, Security Agent
+- **Steps**: 7
+- **Estimated duration**: 1-2 hours
+
+### Documentation Update Workflow
+
+- **ID**: `workflows/documentation-update`
+- **File**: `documentation-update/WORKFLOW.md`
+- **Version**: 1.0.0
+- **Status**: stable
+- **Category**: documentation
+- **Description**: Systematic workflow for maintaining and updating project documentation
+- **Tags**: documentation, update, maintenance, technical-writing
+- **Triggers**: "update docs", "documentation", "improve docs", "docs maintenance"
+- **Contexts**: After feature implementation; Before releases; When APIs change; For outdated documentation
+- **Dependencies**: optional: `skills/documentation`; suggested: `workflows/feature-development`
+- **Agent roles**: Documentation Agent, Technical Writer Agent, Full-Stack Developer Agent
+- **Steps**: 6
+- **Estimated duration**: 1-2 hours
+
+### Feature Development Workflow
+
+- **ID**: `workflows/feature-development`
+- **File**: `feature-development/WORKFLOW.md`
+- **Version**: 1.0.0
+- **Status**: stable
+- **Category**: development
+- **Description**: Complete workflow for developing new features from planning to deployment
+- **Tags**: feature, development, workflow, planning, implementation, testing, deployment
+- **Triggers**: "new feature", "implement feature", "build feature", "add functionality", "feature request"
+- **Contexts**: When implementing new functionality; After feature planning; During sprint work
+- **Dependencies**: required: `skills/testing`; optional: `skills/code-review`, `commands/create-ticket`; suggested: `skills/refactoring`, `commands/generate-changelog`
+- **Agent roles**: Full-Stack Developer Agent, Feature Development Agent, Backend Agent, Frontend Agent, Team Lead Agent
+- **Steps**: 7
+- **Estimated duration**: 2-4 hours per feature
+
+### Finalize Release Workflow
+
+- **ID**: `workflows/finalize-release`
+- **File**: `finalize-release/WORKFLOW.md`
+- **Version**: 1.0.0
+- **Status**: stable
+- **Category**: release
+- **Description**: Final steps for completing and announcing a release
+- **Tags**: release, finalize, announcement, documentation, post-release
+- **Triggers**: "finalize release", "post-release", "announce release"
+- **Contexts**: After release deployment; For release announcements
+- **Dependencies**: optional: `workflows/release`, `commands/generate-changelog`; suggested: `skills/documentation`
+- **Agent roles**: Release Manager Agent, Documentation Agent, Team Lead Agent
+- **Steps**: 6
+- **Estimated duration**: 30-60 minutes
+
+### Hotfix Workflow
+
+- **ID**: `workflows/hotfix`
+- **File**: `hotfix/WORKFLOW.md`
+- **Version**: 1.0.0
+- **Status**: stable
+- **Category**: maintenance
+- **Description**: Emergency workflow for critical production issues requiring immediate fixes
+- **Tags**: hotfix, emergency, production, critical, urgent
+- **Triggers**: "hotfix", "emergency", "production issue", "critical bug", "urgent fix"
+- **Contexts**: When production is broken; During critical incidents; For security vulnerabilities
+- **Dependencies**: required: `skills/debugging`, `skills/testing`; optional: `workflows/bug-fix`; suggested: `skills/code-review`
+- **Agent roles**: Hotfix Agent, Emergency Response Agent, Production Support Agent, Senior Developer Agent
+- **Steps**: 8
+- **Estimated duration**: 30 minutes - 2 hours
+
+### Incident Response Workflow
+
+- **ID**: `workflows/incident-response`
+- **File**: `incident-response/WORKFLOW.md`
+- **Version**: 1.0.0
+- **Status**: stable
+- **Category**: operations
+- **Description**: Production issue handling from detection through resolution and post-mortem
+- **Tags**: incident, production, emergency, monitoring, response, post-mortem, on-call, outage
+- **Triggers**: "incident", "outage", "production down", "alert", "emergency", "page", "on-call", "P1", "critical"
+- **Contexts**: When monitoring alerts fire; When users report production issues; During on-call rotations; After detecting service anomalies
+- **Dependencies**: optional: `skills/debugging`, `workflows/hotfix`; suggested: `skills/testing`, `commands/create-ticket`
+- **Agent roles**: Incident Commander Agent, DevOps Agent, On-Call Agent, Site Reliability Agent, Backend Agent
+- **Steps**: 9
+- **Estimated duration**: 15 min - 8 hours (depends on severity)
+
+### Migration Workflow
+
+- **ID**: `workflows/migration`
+- **File**: `migration/WORKFLOW.md`
+- **Version**: 1.0.0
+- **Status**: stable
+- **Category**: development
+- **Description**: Breaking change and data migration workflow with rollback planning
+- **Tags**: migration, breaking-change, data, schema, backwards-compatibility, rollout, deprecation
+- **Triggers**: "migration", "breaking change", "schema change", "data migration", "backwards compatibility", "major version", "deprecation", "database migration", "API migration"
+- **Contexts**: When introducing breaking API changes; When changing database schemas; When migrating data between systems; For major version releases; When deprecating features
+- **Dependencies**: optional: `skills/testing`, `commands/create-ticket`; suggested: `workflows/release`
+- **Agent roles**: Migration Agent, Database Agent, DevOps Agent, Backend Agent, Team Lead Agent, Architect Agent
+- **Steps**: 8
+- **Estimated duration**: 1 day - 2 weeks (depends on scope)
+
+### Monitoring Setup Workflow
+
+- **ID**: `workflows/monitoring-setup`
+- **File**: `monitoring-setup/WORKFLOW.md`
+- **Version**: 1.0.0
+- **Status**: stable
+- **Category**: devops
+- **Description**: Setting up monitoring, logging, and alerting for production systems
+- **Tags**: monitoring, logging, alerting, observability, devops
+- **Triggers**: "monitoring", "logging", "alerting", "observability", "metrics"
+- **Contexts**: Before production deployment; For system reliability; After infrastructure changes
+- **Dependencies**: optional: `workflows/cicd-setup`; suggested: `skills/performance`
+- **Agent roles**: DevOps Agent, Monitoring Specialist, Infrastructure Agent, SRE Agent
+- **Steps**: 8
+- **Estimated duration**: 3-5 hours
+
+### Release Workflow
+
+- **ID**: `workflows/release`
+- **File**: `release/WORKFLOW.md`
+- **Version**: 1.0.0
+- **Status**: stable
+- **Category**: release
+- **Description**: Complete release process from preparation to deployment
+- **Tags**: release, deployment, versioning, changelog, production
+- **Triggers**: "release", "deploy", "version", "publish"
+- **Contexts**: When preparing new release; After sprint completion; For version milestones
+- **Dependencies**: optional: `commands/generate-changelog`, `workflows/finalize-release`; suggested: `skills/testing`, `skills/documentation`
+- **Agent roles**: Release Manager Agent, DevOps Agent, Team Lead Agent
+- **Steps**: 10
+- **Estimated duration**: 1-2 hours
 
 <!-- proto-gear:capability-index end -->
 

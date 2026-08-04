@@ -31,9 +31,65 @@ For faster invocation, use these shortcuts:
 
 <!-- proto-gear:capability-index begin -->
 
-## Available Slash Commands
+## Available Slash Commands (4)
 
-_Auto-generated from `metadata.yaml`. Run `pg sync-indexes` to refresh. The prose around this marker is hand-written and is preserved across regeneration._
+_Auto-generated from `metadata.yaml`. Hand-edits inside this block are overwritten by `pg sync-indexes`._
+
+### Analyze Coverage
+
+- **ID**: `commands/analyze-coverage`
+- **File**: `analyze-coverage/COMMAND.md`
+- **Version**: 1.1.0
+- **Status**: stable
+- **Category**: testing
+- **Description**: Run and analyze test coverage for the project
+- **Tags**: coverage, testing, analysis, quality, metrics
+- **Triggers**: "/analyze-coverage", "coverage", "test coverage", "analyze coverage"
+- **Contexts**: When user types /analyze-coverage; After running tests; Before merging code; During code review
+- **Dependencies**: optional: `skills/testing`; suggested: `workflows/feature-development`
+- **Agent roles**: Testing Agent, Quality Assurance Agent, Full-Stack Developer Agent
+
+### Create Ticket
+
+- **ID**: `commands/create-ticket`
+- **File**: `create-ticket/COMMAND.md`
+- **Version**: 1.1.0
+- **Status**: stable
+- **Category**: project-management
+- **Description**: Create and properly document a ticket in PROJECT_STATUS.md
+- **Tags**: ticket, planning, status, documentation, sprint, tracking
+- **Triggers**: "/create-ticket", "create ticket", "new ticket", "add ticket"
+- **Contexts**: When user types /create-ticket; When starting any new work item; Before beginning features; After discovering bugs
+- **Dependencies**: optional: `workflows/feature-development`, `workflows/bug-fix`
+- **Agent roles**: Project Manager Agent, All Agents
+
+### Generate Changelog
+
+- **ID**: `commands/generate-changelog`
+- **File**: `generate-changelog/COMMAND.md`
+- **Version**: 1.1.0
+- **Status**: stable
+- **Category**: release-management
+- **Description**: Generate or update CHANGELOG.md from git history
+- **Tags**: changelog, release, documentation, versioning, history
+- **Triggers**: "/generate-changelog", "changelog", "generate changelog", "update changelog"
+- **Contexts**: When user types /generate-changelog; Before releases; After completing features; For version documentation
+- **Dependencies**: optional: `workflows/release`, `workflows/finalize-release`; suggested: `skills/documentation`
+- **Agent roles**: Release Manager Agent, Documentation Agent, DevOps Agent
+
+### Update Status
+
+- **ID**: `commands/update-status`
+- **File**: `update-status/COMMAND.md`
+- **Version**: 1.0.0
+- **Status**: stable
+- **Category**: project-management
+- **Description**: Update ticket status in PROJECT_STATUS.md
+- **Tags**: ticket, status, workflow, tracking, sprint, progress
+- **Triggers**: "/update-status", "/us", "update status", "change status", "mark complete", "mark completed", "start work", "ticket blocked"
+- **Contexts**: When user types /update-status or /us; When starting work on a ticket; When completing a ticket; When blocked by dependency; During workflow step transitions
+- **Dependencies**: optional: `commands/create-ticket`, `workflows/feature-development`, `workflows/bug-fix`
+- **Agent roles**: Project Manager Agent, All Agents
 
 <!-- proto-gear:capability-index end -->
 
