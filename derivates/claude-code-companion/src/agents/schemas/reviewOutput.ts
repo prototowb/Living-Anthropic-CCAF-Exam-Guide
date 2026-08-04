@@ -133,8 +133,28 @@ export const reviewSummarySchema = {
 
 /** Sentinel for the prompt body currently shipped in `docs/CI_REVIEW_PROMPT.md`.
  *  Bump on every material change to the prompt; v0.4 CI workflow asserts this
- *  value is present in the emitted ReviewSummary so drift is detectable. */
-export const CURRENT_PROMPT_VERSION = 'v1.0-2026-05-20';
+ *  value is present in the emitted ReviewSummary so drift is detectable.
+ *  v1.1: added the calibrated confidence threshold + pass-scope sections. */
+export const CURRENT_PROMPT_VERSION = 'v1.1-2026-08-04';
+
+/** Calibrated confidence gate — Scenario 5 deepening task F (v0.7).
+ *
+ *  Comments below this confidence are silenced at the FINAL emission stage
+ *  of the pipeline (scripts/review-filter.ts, and scripts/review-pr.ts in
+ *  single-pass use). It is deliberately NOT applied between pass 1 and
+ *  pass 2 — the independent reviewer must see the full draft, and the
+ *  threshold exists precisely as the safety valve for pass 2's
+ *  keep-hedged-blockers bias (a confident-sounding false blocker survives
+ *  the rule filter; a *low-confidence* one is caught here).
+ *
+ *  The value is CALIBRATED, not chosen: `npm run review:calibrate` sweeps
+ *  0.00–1.00 in 0.05 steps over the labelled corpus in docs/sample-prs/
+ *  (post-pass-2 predictions vs expected.json) and picks the lowest
+ *  threshold achieving maximum F1, stratified by severity bucket and file
+ *  extension. `--check` mode asserts this constant still matches the sweep
+ *  and every stratum holds F1 ≥ 0.7 — edit the corpus, re-run, THEN update
+ *  this value if the sweep says so. Published in docs/CI_REVIEW_PROMPT.md. */
+export const CONFIDENCE_THRESHOLD = 0.6;
 
 /** Type-narrowing helper used by the CI workflow's post-action step. */
 export function isBlocker(c: ReviewComment): boolean {

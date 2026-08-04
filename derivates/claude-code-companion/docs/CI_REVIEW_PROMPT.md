@@ -1,10 +1,10 @@
-# CI review prompt — v1.0-2026-05-20
+# CI review prompt — v1.1-2026-08-04
 
 > This file is the **verbatim prompt body** sent to Claude in CI. The v0.4
 > GitHub Actions workflow loads it with `claude -p "$(cat docs/CI_REVIEW_PROMPT.md)" --output-format json`.
 > Local developers can preview the same review via `npm run review:dry`.
 >
-> **Prompt version:** `v1.0-2026-05-20` — copy this into every `ReviewSummary.promptVersion`.
+> **Prompt version:** `v1.1-2026-08-04` — copy this into every `ReviewSummary.promptVersion`.
 > Bump on every material edit so a regression on the false-positive corpus can
 > be correlated to the exact prompt revision.
 >
@@ -170,7 +170,7 @@ Emit exactly ONE JSON object matching the schema at
   ],
   "verdict": "request_changes",
   "confidence": 0.94,
-  "promptVersion": "v1.0-2026-05-20"
+  "promptVersion": "v1.1-2026-08-04"
 }
 ```
 
@@ -179,13 +179,48 @@ Rules:
 - `rationale` must reference the actual code on the cited line. No abstract
   warnings. If you cannot point at the code, do not emit the comment.
 - `confidence` is your honest probability that another reviewer with the same
-  diff would agree this finding is actionable. v0.3 calibration will silence
-  comments below a threshold — *don't* inflate.
+  diff would agree this finding is actionable. The pipeline silences comments
+  below the calibrated threshold (see §Confidence threshold) — *don't*
+  inflate, and don't sandbag: an inflated false finding wastes a human's
+  time; a sandbagged true finding gets silenced.
 - `verdict = "approve"` requires `comments` to contain zero entries with
   `severity = "blocker"`.
 - `verdict = "request_changes"` requires at least one `blocker` comment.
 - `promptVersion` must equal the version string in this document's header.
 - Return ONLY the JSON object. No prose before or after. No code fences.
+
+## Confidence threshold (calibrated — v1.1)
+
+The pipeline's final emission stage silences comments with
+`confidence < 0.60`. This value is **calibrated, not chosen**:
+`npm run review:calibrate` sweeps 0.00–1.00 in 0.05 steps over the labelled
+corpus at `docs/sample-prs/` (raw post-pass-2 predictions vs
+`expected.json`, keyed by path + line + rationale-hash) and picks the lowest
+threshold at maximum macro-F1, stratified by severity bucket and file
+extension. At 0.60 the labelled-set F1 is **1.000** (below it, 0.909 — a
+planted confident-sounding false blocker survives the pass-2 rule filter and
+only dies here; above 0.90 true findings start to drop). No stratum sits
+below the F1 0.7 acceptance bar. The constant lives at
+`CONFIDENCE_THRESHOLD` in `src/agents/schemas/reviewOutput.ts`;
+`review:calibrate --check` fails CI if the corpus and the constant drift
+apart.
+
+## Pass scopes (split review — v1.1)
+
+The CI workflow may run this prompt in one of two scoped modes; the scope
+preamble prepended by the workflow tells you which:
+
+- **Per-file pass** — you receive ONE file's diff. Flag only defects that
+  are provable inside this file. Do NOT speculate about callers, callees, or
+  types defined elsewhere; the integration pass owns those.
+- **Integration pass** — you receive every touched file's diff plus the
+  per-file findings. Flag ONLY cross-file defects: caller/callee signature
+  mismatches, import/export drift, data-flow contract breaks between the
+  touched files. Do NOT re-report per-file findings.
+
+The acceptance fixture for this split is `docs/sample-prs/sample-6-cross-file`:
+a signature change in one file and a stale call site in another — invisible
+to both per-file passes by construction, caught only in integration.
 
 ## Final check before you emit
 

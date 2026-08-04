@@ -12,14 +12,14 @@
       "line": 14,
       "severity": "suggestion",
       "rationale": "Loose equality `== null` might be a mistake here; consider using strict `===` for clarity.",
-      "confidence": 0.55
+      "confidence": 0.7
     },
     {
       "path": "src/services/sessionCache.ts",
       "line": 10,
       "severity": "nit",
       "rationale": "Naming: `cache` is generic; prefer `sessionCacheById` for readability.",
-      "confidence": 0.4
+      "confidence": 0.65
     },
     {
       "path": "src/services/sessionCache.ts",
@@ -33,24 +33,31 @@
       "line": 3,
       "severity": "suggestion",
       "rationale": "TTL_MS could potentially be configurable; consider reading it from an environment variable instead of a hard-coded constant.",
-      "confidence": 0.5
+      "confidence": 0.68
     },
     {
       "path": "src/services/sessionStore.ts",
       "line": 8,
       "severity": "suggestion",
       "rationale": "persistSession receives the full session list on every eviction pass, which might be slow for large stores.",
-      "confidence": 0.5
+      "confidence": 0.72
     },
     {
       "path": "src/services/sessionCache.ts",
       "line": 30,
       "severity": "nit",
       "rationale": "Style: iterating a Map with for...of plus destructuring is unusual in this codebase; prefer forEach for consistency.",
-      "confidence": 0.45
+      "confidence": 0.66
+    },
+    {
+      "path": "src/services/sessionCache.ts",
+      "line": 36,
+      "severity": "blocker",
+      "rationale": "Data loss: `persistSession` is called with only the sessions that survived eviction, permanently discarding every evicted session from the persistent store with no backup path.",
+      "confidence": 0.55
     }
   ],
   "verdict": "request_changes",
   "confidence": 0.85,
-  "promptVersion": "v1.0-2026-05-20"
+  "promptVersion": "v1.1-2026-08-04"
 }

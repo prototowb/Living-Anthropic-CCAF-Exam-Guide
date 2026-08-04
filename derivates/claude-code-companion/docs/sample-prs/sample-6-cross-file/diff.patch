@@ -1,0 +1,23 @@
+diff --git a/src/billing/formatPrice.ts b/src/billing/formatPrice.ts
+index 1a1a1a1..2b2b2b2 100644
+--- a/src/billing/formatPrice.ts
++++ b/src/billing/formatPrice.ts
+@@ -1,5 +1,6 @@
+-export function formatPrice(cents: number): string {
+-  return `$${(cents / 100).toFixed(2)}`;
++export function formatPrice(cents: number, currency: string): string {
++  const symbol = currency === 'EUR' ? '€' : '$';
++  return `${symbol}${(cents / 100).toFixed(2)}`;
+ }
+diff --git a/src/billing/invoice.ts b/src/billing/invoice.ts
+index 3c3c3c3..4d4d4d4 100644
+--- a/src/billing/invoice.ts
++++ b/src/billing/invoice.ts
+@@ -8,10 +8,13 @@ export function renderInvoice(items: LineItem[]): string {
+   const total = items.reduce((sum, i) => sum + i.cents, 0);
++  const discounted = applyVolumeDiscount(total, items.length);
+   const lines = items.map((i) => `${i.label}: ${formatPrice(i.cents)}`);
+-  lines.push(`Total: ${formatPrice(total)}`);
++  lines.push(`Total: ${formatPrice(discounted)}`);
+   return lines.join('\n');
+ }

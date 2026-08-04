@@ -1,10 +1,13 @@
-# Claude Code review — Scenario 5, v0.6 hardened pipeline.
+# Claude Code review — Scenario 5, v0.7 pipeline.
 #
-# Two-pass Claude review of every PR with fork-safe data handling, a real
-# monthly budget accumulator, and incremental-review continuity.
+# Split two-pass Claude review of every PR with fork-safe data handling, a
+# real monthly budget accumulator, incremental-review continuity, and a
+# calibrated confidence gate.
 #
-# Pipeline: budget check → fetch diff via API → pass 1 (find) → pass 2
-# (independent filter) → dedupe vs prior run → post → record spend.
+# Pipeline: budget check → fetch diff via API → pass 1 (find: one per-file
+# process per touched file + one integration process) → pass 2 (independent
+# filter) → calibrated confidence gate → dedupe vs prior run → post →
+# record spend.
 #
 # Architect mandates honoured here:
 #   - TS 3.6 non-interactive `-p` invocation with `--output-format json`.
@@ -21,6 +24,15 @@
 #     fresh `claude -p` runs docs/CI_REVIEW_OF_REVIEW_PROMPT.md over the diff
 #     plus pass 1's draft and strips false positives. Dry-run mirror:
 #     scripts/review-filter.ts (acceptance-tested by `npm run review:eval`).
+#   - TS 4.6 per-file vs cross-file split (v0.7, deepening task B): pass 1
+#     runs one scoped process per touched file (local defects) plus one
+#     integration process (imports/exports/data-flow), merged into a single
+#     draft. Splitter: scripts/ci/split-diff.ts; dry mirror:
+#     `review:dry --split`; acceptance fixture: sample-6-cross-file.
+#   - TS 5.5 calibrated confidence gate (v0.7, deepening task F): the final
+#     emission silences comments below CONFIDENCE_THRESHOLD (0.60), derived
+#     by `npm run review:calibrate` from the labelled corpus and
+#     drift-guarded by `review:calibrate --check`.
 #   - TS 3.6 incremental continuity (v0.6, deepening task D): the prior
 #     ReviewSummary is recovered from the last bot comment's embedded
 #     `<!-- claude-review:summary v1 -->` block, deduped by
@@ -269,11 +281,15 @@ jobs:
             echo "mode=dry" >> "$GITHUB_OUTPUT"
           fi
 
-      # Pass 1 — find. Fresh process, no --resume (generator isolation,
-      # deepening task C). The prior findings travel INTO the prompt so the
-      # model itself also biases toward "new or still-unaddressed only";
-      # the dedupe step below enforces it mechanically regardless.
-      - name: Review pass 1 (find)
+      # Pass 1 — find, as a SPLIT review (v0.7, deepening task B): one fresh
+      # claude process per touched file (per-file scope: local defects only),
+      # then ONE integration pass over the per-file findings + the full diff
+      # (scope: imports/exports/data-flow). Every process is fresh, no
+      # --resume (generator isolation, deepening task C). The prior findings
+      # travel INTO the integration prompt so the model also biases toward
+      # "new or still-unaddressed only"; the dedupe step below enforces it
+      # mechanically regardless.
+      - name: Review pass 1 (find — per-file + integration)
         if: steps.budget.outputs.skip != 'true'
         id: pass1
         env:
@@ -284,29 +300,65 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p /tmp/claude
+          extract_json() {
+            npx tsx -e 'import{extractFirstJsonObject}from"./src/agents/schemas/parse";let t="";process.stdin.on("data",d=>t+=d).on("end",()=>{const o=extractFirstJsonObject(t);if(!o){console.error("model emitted no JSON object");process.exit(1)}console.log(JSON.stringify(o,null,2))})'
+          }
           if [ "${{ steps.mode.outputs.mode }}" = "real" ]; then
+            npx tsx scripts/ci/split-diff.ts /tmp/pr.diff /tmp/perfile > /tmp/perfile-list
+            echo 0 > /tmp/claude/pass1-cost
+            : > /tmp/claude/perfile-summaries.json
+            while IFS=$'\t' read -r fpath fpatch; do
+              {
+                echo "SCOPE: PER-FILE PASS for \`$fpath\` — see '## Pass scopes' in the prompt below. Flag only defects provable inside this file."
+                echo
+                cat docs/CI_REVIEW_PROMPT.md
+                echo; echo "## Unified diff under review (single file: $fpath)"; echo '```diff'
+                cat "$fpatch"
+                echo '```'
+              } > /tmp/claude/pf-prompt.md
+              claude -p "$(cat /tmp/claude/pf-prompt.md)" --output-format json > /tmp/claude/pf-raw.json
+              jq -r '.result' /tmp/claude/pf-raw.json | extract_json >> /tmp/claude/perfile-summaries.json
+              c="$(jq -r '.total_cost_usd // 0' /tmp/claude/pf-raw.json)"
+              awk -v add="$c" '{printf "%.4f", $1 + add}' /tmp/claude/pass1-cost > /tmp/claude/pass1-cost.new
+              mv /tmp/claude/pass1-cost.new /tmp/claude/pass1-cost
+            done < /tmp/perfile-list
             {
+              echo "SCOPE: INTEGRATION PASS — see '## Pass scopes' in the prompt below. Flag ONLY cross-file defects; do not re-report the per-file findings."
+              echo
               cat docs/CI_REVIEW_PROMPT.md
+              echo; echo "## Per-file findings already collected"; echo '```json'
+              cat /tmp/claude/perfile-summaries.json
+              echo '```'
               if [ "$HAS_PRIOR" = "true" ]; then
                 echo; echo "## Prior review (report only NEW or STILL-UNADDRESSED issues)"
                 echo '```json'; cat /tmp/prior.json; echo '```'
               fi
-              echo; echo "## Unified diff under review"; echo '```diff'
+              echo; echo "## Unified diff under review (all files)"; echo '```diff'
               cat /tmp/pr.diff
               echo '```'
-            } > /tmp/claude/pass1-prompt.md
-            claude -p "$(cat /tmp/claude/pass1-prompt.md)" --output-format json \
-              > /tmp/claude/pass1-raw.json
-            jq -r '.result' /tmp/claude/pass1-raw.json \
-              | npx tsx -e 'import{extractFirstJsonObject}from"./src/agents/schemas/parse";let t="";process.stdin.on("data",d=>t+=d).on("end",()=>{const o=extractFirstJsonObject(t);if(!o){console.error("pass 1 emitted no JSON object");process.exit(1)}console.log(JSON.stringify(o,null,2))})' \
-              > /tmp/claude/pass1.json
-            jq -r '.total_cost_usd // 0' /tmp/claude/pass1-raw.json > /tmp/claude/pass1-cost
+            } > /tmp/claude/integration-prompt.md
+            claude -p "$(cat /tmp/claude/integration-prompt.md)" --output-format json > /tmp/claude/integration-raw.json
+            jq -r '.result' /tmp/claude/integration-raw.json | extract_json > /tmp/claude/integration.json
+            c="$(jq -r '.total_cost_usd // 0' /tmp/claude/integration-raw.json)"
+            awk -v add="$c" '{printf "%.4f", $1 + add}' /tmp/claude/pass1-cost > /tmp/claude/pass1-cost.new
+            mv /tmp/claude/pass1-cost.new /tmp/claude/pass1-cost
+            # Merge per-file + integration into one draft ReviewSummary.
+            jq -s '
+              ((map(.comments) | add) // []) as $c |
+              { comments: $c,
+                verdict: (if ($c | map(select(.severity == "blocker")) | length) > 0 then "request_changes"
+                          elif ($c | length) > 0 then "comment_only" else "approve" end),
+                confidence: (if length > 0 then (map(.confidence) | min) else 0.5 end),
+                promptVersion: (.[0].promptVersion // "unknown") }
+            ' /tmp/claude/perfile-summaries.json /tmp/claude/integration.json > /tmp/claude/pass1.json
           else
-            # Dry-run over the REAL PR diff (v0.6 — no more default-fixture-only).
-            npm run -s review:dry -- /tmp/pr.diff > /tmp/claude/pass1.json
+            # Dry-run over the REAL PR diff. --split exercises the same
+            # per-file + integration architecture synthetically; --raw defers
+            # the calibrated confidence gate to pass 2's final emission.
+            npm run -s review:dry -- /tmp/pr.diff --split --raw > /tmp/claude/pass1.json
             echo 0 > /tmp/claude/pass1-cost
           fi
-          echo "--- pass 1 ---"; cat /tmp/claude/pass1.json
+          echo "--- pass 1 (merged draft) ---"; cat /tmp/claude/pass1.json
 
       # Pass 2 — independent filter (deepening task A). A SECOND fresh
       # process with no context from pass 1 beyond its emitted draft.
@@ -330,14 +382,22 @@ jobs:
               > /tmp/claude/pass2-raw.json
             jq -r '.result' /tmp/claude/pass2-raw.json \
               | npx tsx -e 'import{extractFirstJsonObject}from"./src/agents/schemas/parse";let t="";process.stdin.on("data",d=>t+=d).on("end",()=>{const o=extractFirstJsonObject(t);if(!o){console.error("pass 2 emitted no JSON object");process.exit(1)}console.log(JSON.stringify(o,null,2))})' \
+              > /tmp/claude/pass2-unthresholded.json
+            # Calibrated confidence gate (v0.7, deepening task F) — the
+            # FINAL emission stage. See CONFIDENCE_THRESHOLD in
+            # src/agents/schemas/reviewOutput.ts and §Confidence threshold
+            # in docs/CI_REVIEW_PROMPT.md.
+            npx tsx -e 'import{applyConfidenceThreshold}from"./scripts/review-pr";import{readFileSync}from"node:fs";const s=JSON.parse(readFileSync("/tmp/claude/pass2-unthresholded.json","utf8"));console.log(JSON.stringify(applyConfidenceThreshold(s),null,2))' \
               > /tmp/claude/pass2.json
             jq -r '.total_cost_usd // 0' /tmp/claude/pass2-raw.json > /tmp/claude/pass2-cost
           else
+            # review-filter applies the calibrated confidence gate itself
+            # (its default, non---raw mode) — no separate step needed.
             npm run -s review:filter -- --draft /tmp/claude/pass1.json --diff /tmp/pr.diff \
               > /tmp/claude/pass2.json
             echo 0 > /tmp/claude/pass2-cost
           fi
-          echo "--- pass 2 ---"; cat /tmp/claude/pass2.json
+          echo "--- pass 2 (filtered + thresholded) ---"; cat /tmp/claude/pass2.json
 
       # Dedupe vs the prior run (deepening task D).
       - name: Dedupe against prior review

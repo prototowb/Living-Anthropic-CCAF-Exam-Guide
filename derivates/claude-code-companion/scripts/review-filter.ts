@@ -20,11 +20,18 @@
 //   3d. Duplicate (same path + normalised-rationale hash) → keep first.
 //    4. Bias: hedged BLOCKERS are kept — a dropped true blocker costs more
 //       than a surviving false one.
+//    5. (v0.7, deepening task F) Calibrated confidence gate: comments below
+//       CONFIDENCE_THRESHOLD are silenced at this final emission stage.
+//       This is the safety valve for rule 4 — a confident-sounding false
+//       blocker survives the rules, a low-confidence one dies here.
+//       `--raw` skips this gate (used by the calibration sweep, which must
+//       see unthresholded pipeline output).
 //   1/2. Never adds and never edits findings — kept comments are passed
 //       through byte-identical; only the verdict is recomputed.
 
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
+import { CONFIDENCE_THRESHOLD } from '../src/agents/schemas/reviewOutput';
 import type { ReviewComment, ReviewSummary } from '../src/agents/schemas/reviewOutput';
 
 // ── Diff scope ─────────────────────────────────────────────────────────────
@@ -80,7 +87,9 @@ export interface FilterDecision {
 export function filterFindings(
   draft: ReviewSummary,
   scope: DiffScope,
+  opts: { applyThreshold?: boolean } = {},
 ): { summary: ReviewSummary; decisions: FilterDecision[] } {
+  const applyThreshold = opts.applyThreshold ?? true;
   const decisions: FilterDecision[] = [];
   const seen = new Set<string>();
 
@@ -114,6 +123,14 @@ export function filterFindings(
       continue;
     }
     seen.add(key);
+    if (applyThreshold && c.confidence < CONFIDENCE_THRESHOLD) {
+      decisions.push({
+        comment: c,
+        kept: false,
+        rule: `5: confidence ${c.confidence} below calibrated threshold ${CONFIDENCE_THRESHOLD}`,
+      });
+      continue;
+    }
     decisions.push({ comment: c, kept: true, rule: c.severity === 'blocker' ? 'kept (blocker bias)' : 'kept' });
   }
 
@@ -152,7 +169,8 @@ function main() {
 
   const draft = JSON.parse(readFileSync(draftPath, 'utf8')) as ReviewSummary;
   const scope = parseDiffScope(readFileSync(diffPath, 'utf8'));
-  const { summary, decisions } = filterFindings(draft, scope);
+  const raw = process.argv.includes('--raw');
+  const { summary, decisions } = filterFindings(draft, scope, { applyThreshold: !raw });
 
   for (const d of decisions) {
     console.error(

@@ -1,0 +1,14 @@
+{
+  "comments": [
+    {
+      "path": "src/billing/invoice.ts",
+      "line": 11,
+      "severity": "blocker",
+      "rationale": "Caller-callee signature mismatch across files in this PR: `formatPrice` gains a required second `currency` parameter in src/billing/formatPrice.ts, but invoice.ts still calls `formatPrice(discounted)` with one argument (and `formatPrice(i.cents)` on the line above), so the build fails with TS2554 (expected 2 arguments, got 1). Neither file's diff shows the defect in isolation.",
+      "confidence": 0.9
+    }
+  ],
+  "verdict": "request_changes",
+  "confidence": 0.9,
+  "promptVersion": "v1.1-2026-08-04"
+}
