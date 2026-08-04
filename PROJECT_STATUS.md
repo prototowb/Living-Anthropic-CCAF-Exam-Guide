@@ -176,6 +176,7 @@ These are not commitments — they're directions the architecture is set up to a
 - 2026-05-20: Docs refreshed for hand-off (`PROJECT_ARCHITECTURE.md`, `PROJECT_SPECIFICATIONS.md`, this file).
 - 2026-05-26: Sprint 5 — v0.5.0. Spaced repetition (Leitner + `/practice` + Home tile). `/glossary` with 40 entries auto-linked to pattern tags. Session-only real-SDK opt-in in `/tutor`. 3 new variant flows + 4 new flow-builder lessons (covers the previously-uncovered tool-call-lifecycle).
 - 2026-06-01: v0.5.1 polish. Atlas variant toggle (canonical 6 default, +3 variants opt-in). Glossary deep-link from pattern tag chips (`/glossary?q=`). Tutor composer visible on tall empty viewports. HomeView flow count dynamic.
+- 2026-08-04: `derivates/claude-code-companion` shipped v0.5.0 (live adapters), v0.6.0 (hardened two-pass CI review), v0.7.0 (split review + calibrated confidence gate — Scenario 5 deepening backlog closed). The companion's Claude-review workflow is now hosted at the repo root (`.github/workflows/claude-review.yml`) and runs on this repo's PRs: dry-run mode without secrets; set `ANTHROPIC_API_KEY` (secret) and optionally `CLAUDE_REVIEW_MONTHLY_BUDGET_USD` (variable) for real reviews.
 
 ---
 *Maintained by ProtoGear Agent Framework*

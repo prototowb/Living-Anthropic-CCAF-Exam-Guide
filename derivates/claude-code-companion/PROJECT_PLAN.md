@@ -244,7 +244,7 @@ Scenario 5's deepening backlog is now fully closed (tasks A–F all landed).
 - **`npm run review:eval`** now chains all three acceptance harnesses: filter (task A), split (task B), calibration (task F).
 - Prompt `v1.1-2026-08-04`: added §Confidence threshold and §Pass scopes; all fixture `promptVersion` strings updated.
 
-**Still open beyond v0.7:** nothing on the Scenario 5 deepening list. Candidate next directions: the parent playbook's test suite, or hosting a root-level copy of the review workflow so it actually executes on this repo's PRs.
+**Still open beyond v0.7:** nothing on the Scenario 5 deepening list. The review workflow is now hosted at the repo root (`.github/workflows/claude-review.yml`, working-directory pinned back to this subproject) so it actually executes on the repo's PRs — this copy remains the annotated teaching artifact. Candidate next direction: the parent playbook's test suite.
 
 ## 10. Open decisions for the first session
 

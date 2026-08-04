@@ -1,10 +1,22 @@
-# Claude Code review — Scenario 5, v0.7 pipeline.
+# Claude Code review — EXECUTABLE root-level twin of the Scenario 5 v0.7
+# teaching artifact at derivates/claude-code-companion/.github/workflows/.
 #
-# NOTE: this copy is the annotated TEACHING artifact — GitHub only triggers
-# workflows from the repo root, so the executable twin lives at
-# ../../../.github/workflows/claude-review.yml (same logic plus a
-# working-directory default pointing back here). Keep the two in sync:
-# structural changes land HERE first, then propagate to the root copy.
+# GitHub only triggers workflows from the repo root's .github/workflows/,
+# so the companion's copy never runs — this file is the live one. Keep the
+# two in sync: structural changes land in the companion first (it carries
+# the full mandate annotations), then propagate here. Deltas in this copy,
+# by design:
+#   - `defaults.run.working-directory` points every step at the companion
+#     subproject, where the scripts, prompts, and hooks live.
+#   - setup-node's `cache-dependency-path` targets the companion lockfile.
+#   - The diff under review is the WHOLE repo's PR diff (paths are
+#     repo-root-relative); the review prompt operates on diff text, so the
+#     wider scope needs no other change.
+#
+# Modes: with the ANTHROPIC_API_KEY secret configured this posts real
+# two-pass Claude reviews; without it, a labelled DRY-RUN (synthetic
+# reviewer) exercises the identical pipeline at zero cost. Repo variable
+# CLAUDE_REVIEW_MONTHLY_BUDGET_USD caps real spend (see budget step).
 #
 # Split two-pass Claude review of every PR with fork-safe data handling, a
 # real monthly budget accumulator, incremental-review continuity, and a
@@ -91,6 +103,11 @@ jobs:
     name: Claude review
     runs-on: ubuntu-latest
 
+    # All scripts, prompts, and hooks live in the companion subproject.
+    defaults:
+      run:
+        working-directory: derivates/claude-code-companion
+
     # Trigger gate:
     #   1. `pull_request_target` events — fork PRs included. Safe because the
     #      privileged context only ever executes BASE-repo code; the PR
@@ -109,6 +126,9 @@ jobs:
     steps:
       - name: Resolve PR ref
         id: pr
+        # Runs BEFORE checkout — the companion working-directory does not
+        # exist yet, so this step overrides back to the workspace root.
+        working-directory: .
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -140,6 +160,7 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
+          cache-dependency-path: derivates/claude-code-companion/package-lock.json
 
       - name: Install dependencies (base repo lockfile)
         run: npm ci
