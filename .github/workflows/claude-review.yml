@@ -444,6 +444,17 @@ jobs:
       # resolved, prior exists) posts NOTHING. Otherwise the comment lists
       # new findings, still-unaddressed ones, and resolved ones, and embeds
       # the machine-readable summary the NEXT run will dedupe against.
+      #
+      # Two-part posting (v0.7.1, from the first live run):
+      #   1. The full body + marker goes out as an ISSUE COMMENT — the
+      #      prior-fetch step reads /issues/N/comments, and review bodies do
+      #      NOT appear there, so continuity only works if the marker lands
+      #      in an issue comment.
+      #   2. The verdict is signalled separately: request-changes as a
+      #      blocking review; approve as a best-effort review that degrades
+      #      to a note when the repo forbids Actions from approving PRs
+      #      (default setting — "Allow GitHub Actions to create and approve
+      #      pull requests" is off); comment_only needs no extra signal.
       - name: Post review to PR
         if: steps.budget.outputs.skip != 'true'
         env:
@@ -480,13 +491,23 @@ jobs:
           \`\`\`"
 
           echo "Verdict: $verdict (new=$new_count open=$open_count resolved=$resolved_count)"
+
+          # Part 1 — the continuity anchor: full body + marker as an issue
+          # comment (the only comment type the prior-fetch step can see).
+          gh pr comment "$PR_NUMBER" --repo "${{ github.repository }}" --body "$body"
+
+          # Part 2 — the verdict signal.
           case "$verdict" in
             request_changes)
-              gh pr review "$PR_NUMBER" --repo "${{ github.repository }}" --request-changes --body "$body" ;;
+              gh pr review "$PR_NUMBER" --repo "${{ github.repository }}" \
+                --request-changes --body "Blocking findings — see the Claude review comment." ;;
             comment_only)
-              gh pr review "$PR_NUMBER" --repo "${{ github.repository }}" --comment --body "$body" ;;
+              ;;
             approve)
-              gh pr review "$PR_NUMBER" --repo "${{ github.repository }}" --approve --body "$body" ;;
+              if ! gh pr review "$PR_NUMBER" --repo "${{ github.repository }}" \
+                   --approve --body "Claude review: no open findings."; then
+                echo "::notice::Approve review rejected (repo forbids Actions approving PRs) — the verdict is recorded in the review comment instead."
+              fi ;;
             *)
               echo "Unknown verdict: $verdict" >&2; exit 1 ;;
           esac
