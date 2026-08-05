@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+}
+
+body {
+  @apply bg-ink-50 text-ink-700 font-sans antialiased;
+  font-feature-settings: 'cv11', 'ss01';
+}
+
+a {
+  @apply text-accent-ink underline-offset-2 hover:underline;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  @apply font-serif text-ink-800;
+}
+
+.kbd {
+  @apply inline-flex items-center rounded border border-ink-200 bg-white px-1.5 py-0.5 font-mono text-[0.72rem] text-ink-700 shadow-sm;
+}
+
+.chip {
+  @apply inline-flex items-center gap-1 rounded-full border border-ink-200 bg-white px-2 py-0.5 text-[0.7rem] font-medium text-ink-600;
+}
+
+.code-inline {
+  @apply rounded bg-ink-100 px-1.5 py-0.5 font-mono text-[0.82em] text-ink-800;
+}
+
+.section-h {
+  @apply font-serif text-xl text-ink-800 mb-3;
+}
+
+/* Subtle dotted card frame for infographics */
+.frame {
+  @apply rounded-2xl border border-ink-200 bg-white shadow-sm;
+}
+
+/* Step rail */
+.rail-dot {
+  @apply h-2 w-2 rounded-full border border-ink-300 bg-white transition-colors;
+}
+.rail-dot.is-active {
+  @apply bg-accent border-accent;
+}
+.rail-dot.is-done {
+  @apply bg-ink-700 border-ink-700;
+}
+
+/* Reveal animation */
+.reveal-enter-active,
+.reveal-leave-active {
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+.reveal-enter-from,
+.reveal-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}

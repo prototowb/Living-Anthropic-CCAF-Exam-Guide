@@ -95,7 +95,7 @@ bundle:   "≈ 105 kB JS gzipped, ≈ 40 kB CSS gzipped (route-level lazy chunks
 
 ## 🎫 Active Tickets
 
-- **AIP-050** — Build out `derivates/exam-scenarios-atlas` (second derivative; currently an empty `src/` stub — note there is also a stale `worktree-exam-scenarios-atlas` branch/worktree at `.claude/worktrees/exam-scenarios-atlas`, parked at an old commit with no unique work; reuse or remove it). **Planned as the first item of the next session** — starts with a PROJECT_PLAN (audience, surface, substrate) following the pattern of `derivates/claude-code-companion/PROJECT_PLAN.md`, then a v0.1 skeleton. *PLANNED.*
+- **AIP-050** — Build out `derivates/exam-scenarios-atlas` (second derivative). v0.1.0 landed: the "stale" worktree turned out to hold a complete untracked scaffold (all 6 scenarios authored, all 12 exam-guide sample questions placed, typecheck + build clean) — salvaged into the main tree, verified via CDP smoke test, worktree + branch removed. `PROJECT_PLAN.md` written (scenario-first atlas; v0.2 = parent reverse-links + drill mode, v0.3 = matrix + foils + print sheet). *IN REVIEW — PR open.*
 
 ## 🪜 Suggested next moves (backlog hints)
 
@@ -180,6 +180,7 @@ These are not commitments — they're directions the architecture is set up to a
 - 2026-06-01: v0.5.1 polish. Atlas variant toggle (canonical 6 default, +3 variants opt-in). Glossary deep-link from pattern tag chips (`/glossary?q=`). Tutor composer visible on tall empty viewports. HomeView flow count dynamic.
 - 2026-08-04: `derivates/claude-code-companion` shipped v0.5.0 (live adapters), v0.6.0 (hardened two-pass CI review), v0.7.0 (split review + calibrated confidence gate — Scenario 5 deepening backlog closed). The companion's Claude-review workflow is now hosted at the repo root (`.github/workflows/claude-review.yml`) and runs on this repo's PRs: dry-run mode without secrets; set `ANTHROPIC_API_KEY` (secret) and optionally `CLAUDE_REVIEW_MONTHLY_BUDGET_USD` (variable) for real reviews.
 - 2026-08-05: v0.5.2 — AIP-049 SR scheduler tunables in `/practice`. Housekeeping: CLAUDE.md index regenerated (`pg sync-context`), stale caveats closed, merged branches pruned, AIP-050 (exam-scenarios-atlas build-out) queued for next session. Parent test suite explicitly on hold.
+- 2026-08-05: AIP-050 — `derivates/exam-scenarios-atlas` v0.1.0. The parked worktree held a complete untracked scaffold (contrary to its "no unique work" label): all 6 scenario pages (infographic + example + living flow + worked code + Q&A), all 12 exam-guide sample questions + 6 authored ones, hash routing, zero runtime network. Salvaged, verified (typecheck + build + CDP smoke test over 4 routes), PROJECT_PLAN.md added; stale worktree/branch removed.
 
 ---
 *Maintained by ProtoGear Agent Framework*
