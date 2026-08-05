@@ -24,7 +24,10 @@ Beyond the six scenario pages:
 
 - **`/drill`** — recognition drill: place a requirement fragment / log excerpt /
   stakeholder quote by scenario or domain; aggregate accuracy persists under
-  `esa:drill:v1`.
+  `esa:drill:v1`. Adaptive: "Drill weak spots" weights the run toward
+  low-accuracy (or unseen) scenarios/domains, the idle screen shows the
+  per-scenario/per-domain breakdown, and `?scenario=n` (linked from each
+  scenario page) focuses a run on one scenario's items.
 - **`/matrix`** — scenario × domain matrix: every `TS x.y` a scenario cites, at
   its intersection with the owning domain, derived live from the scenario data.
 - **Anti-pattern foils** — each scenario page shows the plausible wrong way

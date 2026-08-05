@@ -95,7 +95,7 @@ bundle:   "≈ 105 kB JS gzipped, ≈ 40 kB CSS gzipped (route-level lazy chunks
 
 ## 🎫 Active Tickets
 
-- **AIP-050** — Build out `derivates/exam-scenarios-atlas` (second derivative). v0.1.0 landed: the "stale" worktree turned out to hold a complete untracked scaffold (all 6 scenarios authored, all 12 exam-guide sample questions placed, typecheck + build clean) — salvaged into the main tree, verified via CDP smoke test, worktree + branch removed. `PROJECT_PLAN.md` written (scenario-first atlas; v0.2 = parent reverse-links + drill mode, v0.3 = matrix + foils + print sheet). v0.2.0 followed the same day: `/drill` recognition mode (18 authored fragments, Pinia, aggregate-only persistence under `esa:drill:v1`) + reverse-link chips (domain badges → parent `/domains/dN`; `TS x.y` mandate tags → parent `/patterns/:id` via checked-in taskRef map; base URL via `VITE_PARENT_BASE_URL`). v0.1 + v0.2 merged (PRs #8, #9). v0.3.0: `/matrix` scenario×domain view (pure projection of scenario data), 12 anti-pattern foil pairs (`foils` required on `Scenario`), print study sheets (`?print=1`). *IN REVIEW — v0.3 PR open.*
+- **AIP-051** — `derivates/exam-scenarios-atlas` v0.4: **adaptive drill**. "Drill weak spots" run mode (weighted sampling without replacement, `weight = 1 + 3·(1 − accuracy)`, unseen = 4, logic in `src/data/drill.ts` so it's node-testable), per-scenario/per-domain accuracy breakdown on the idle screen, per-scenario focused runs (`/drill?scenario=n`, linked from scenario pages), quit control mid-run. Persistence shape unchanged. *IN REVIEW — PR open.*
 
 ## 🪜 Suggested next moves (backlog hints)
 
@@ -108,6 +108,7 @@ These are not commitments — they're directions the architecture is set up to a
 
 ## ✅ Completed Tickets (all sprints)
 
+- **AIP-050** — `derivates/exam-scenarios-atlas` built out v0.1 → v0.3 (PRs #8–#10, all merged 2026-08-05): scenario-first atlas with all 6 scenarios + 12 exam-guide sample questions, `/drill` recognition mode, parent reverse-links, `/matrix`, 12 anti-pattern foil pairs, print study sheets. PROJECT_PLAN §8 roadmap fully shipped.
 - **INIT-001** — Proto Gear Agent Framework integrated
 - **AIP-001** — Vite + Vue 3 + TS scaffold (Pinia, vue-router, Tailwind, SCSS+BEM)
 - **AIP-002** — Spec expanded; architecture extracted
@@ -183,6 +184,7 @@ These are not commitments — they're directions the architecture is set up to a
 - 2026-08-05: AIP-050 — `derivates/exam-scenarios-atlas` v0.1.0. The parked worktree held a complete untracked scaffold (contrary to its "no unique work" label): all 6 scenario pages (infographic + example + living flow + worked code + Q&A), all 12 exam-guide sample questions + 6 authored ones, hash routing, zero runtime network. Salvaged, verified (typecheck + build + CDP smoke test over 4 routes), PROJECT_PLAN.md added; stale worktree/branch removed.
 - 2026-08-05: exam-scenarios-atlas v0.2.0 (stacked on the v0.1 PR): `/drill` scenario-recognition mode — 18 authored fragments (12 scenario-asks, 6 domain-asks), Pinia store, aggregate-only localStorage (`esa:drill:v1`, runs reset by design) — and reverse-link chips from domain badges (→ parent `/domains/dN`) and `TS x.y` mandate tags in flow steps + Q&A reveals (→ parent `/patterns/:id` via the checked-in taskRef map; every task statement the atlas cites has a parent pattern route). Verified via 8-check CDP smoke test incl. drill click-through and persistence assertion.
 - 2026-08-05: exam-scenarios-atlas v0.1 + v0.2 merged (PRs #8, #9 ff-merged, branches pruned). v0.3.0: `/matrix` scenario × domain matrix (derived live — flow mandates + Q&A refs + foil refs; primary-domain cells shaded; chips open parent patterns), anti-pattern foils section on every scenario page (12 authored wrong-vs-right pairs, `foils` now required on `Scenario`), print-friendly study sheets (`?print=1`, flow expanded, answers marked, `@media print` styles). Tailwind safelist added for dynamic `bg-domain-*` classes. Verified via 5-check CDP smoke test.
+- 2026-08-05: exam-scenarios-atlas v0.3 merged (PR #10); AIP-050 closed (roadmap v0.1–v0.3 fully shipped). AIP-051 opened and built: v0.4.0 adaptive drill — weak-spot-weighted runs, accuracy breakdown, `?scenario=n` focused runs, mid-run quit. Weighting verified statistically node-side (5k orderings: weak items avg position 3.7 vs 9.1; flat weights uniform) + 5-check CDP browser test.
 
 ---
 *Maintained by ProtoGear Agent Framework*

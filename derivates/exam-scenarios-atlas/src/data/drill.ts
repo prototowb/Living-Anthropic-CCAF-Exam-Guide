@@ -20,6 +20,47 @@ export interface DrillItem {
   explain: string
 }
 
+/** Accuracy bucket shape shared with the drill store's persisted stats. */
+export interface DrillBucket {
+  attempts: number
+  correct: number
+}
+
+export interface DrillWeights {
+  byScenario: Record<number, DrillBucket>
+  byDomain: Record<number, DrillBucket>
+}
+
+/**
+ * How much a run should favour this item: 1 (mastered) … 4 (unseen).
+ * Unseen buckets count as weakest — the drill pulls you toward what
+ * you haven't faced before what you've merely gotten wrong.
+ */
+export function itemWeight(item: DrillItem, stats: DrillWeights): number {
+  const bucket =
+    item.ask === 'scenario' ? stats.byScenario[item.answer] : stats.byDomain[item.answer]
+  if (!bucket || bucket.attempts === 0) return 4
+  return 1 + 3 * (1 - bucket.correct / bucket.attempts)
+}
+
+/** Weighted sampling without replacement — the whole pool, weak spots first-ish. */
+export function weightedOrder(items: DrillItem[], stats: DrillWeights): DrillItem[] {
+  const pool = items.map((item) => ({ item, w: itemWeight(item, stats) }))
+  const out: DrillItem[] = []
+  while (pool.length) {
+    const total = pool.reduce((s, p) => s + p.w, 0)
+    let r = Math.random() * total
+    let idx = 0
+    for (; idx < pool.length - 1; idx++) {
+      r -= pool[idx].w
+      if (r <= 0) break
+    }
+    out.push(pool[idx].item)
+    pool.splice(idx, 1)
+  }
+  return out
+}
+
 export const DRILL_ITEMS: DrillItem[] = [
   // ── Scenario placement ────────────────────────────────────────────────
   {

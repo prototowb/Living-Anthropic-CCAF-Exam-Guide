@@ -1,13 +1,10 @@
 import { defineStore } from 'pinia'
-import { DRILL_ITEMS, type DrillItem } from '../data/drill'
+import { DRILL_ITEMS, weightedOrder, type DrillItem, type DrillBucket } from '../data/drill'
 import { load, save } from './persist'
 
 const KEY = 'esa:drill:v1'
 
-interface Bucket {
-  attempts: number
-  correct: number
-}
+type Bucket = DrillBucket
 
 /** Persisted aggregate stats (per plan §9.2: only aggregates persist — runs reset). */
 interface DrillStats {
@@ -42,10 +39,14 @@ function shuffled<T>(items: T[]): T[] {
   return a
 }
 
+/** What a run is focused on: everything, weak spots, or one scenario's items. */
+export type RunFocus = 'all' | 'weak' | number
+
 export const useDrillStore = defineStore('drill', {
   state: () => ({
     stats: load<DrillStats>(KEY, emptyStats()),
     phase: 'idle' as 'idle' | 'running' | 'done',
+    focus: 'all' as RunFocus,
     order: [] as string[],
     index: 0,
     answers: [] as RunAnswer[],
@@ -72,8 +73,18 @@ export const useDrillStore = defineStore('drill', {
   },
 
   actions: {
-    startRun() {
-      this.order = shuffled(DRILL_ITEMS).map((i) => i.id)
+    startRun(focus: RunFocus = 'all') {
+      let items: DrillItem[]
+      if (typeof focus === 'number') {
+        items = shuffled(DRILL_ITEMS.filter((i) => i.ask === 'scenario' && i.answer === focus))
+      } else if (focus === 'weak') {
+        items = weightedOrder(DRILL_ITEMS, this.stats)
+      } else {
+        items = shuffled(DRILL_ITEMS)
+      }
+      if (!items.length) return
+      this.focus = focus
+      this.order = items.map((i) => i.id)
       this.index = 0
       this.answers = []
       this.picked = null

@@ -127,6 +127,13 @@ const prev = computed(() => {
         <span class="font-mono">Scenario {{ scenario.number }} of 6</span>
         <span class="flex-1"></span>
         <RouterLink
+          :to="{ name: 'drill', query: { scenario: String(scenario.number) } }"
+          class="no-underline hover:text-ink-700"
+        >
+          Drill this scenario
+        </RouterLink>
+        <span>·</span>
+        <RouterLink
           :to="{ name: 'scenario', params: { id: scenario.id }, query: { print: '1' } }"
           class="no-underline hover:text-ink-700"
         >
