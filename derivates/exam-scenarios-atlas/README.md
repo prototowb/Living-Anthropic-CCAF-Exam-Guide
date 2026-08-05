@@ -20,6 +20,13 @@ Each of the six exam scenarios gets its own page with four pieces:
 | 5 | Claude Code for Continuous Integration | Claude Code · Prompt Eng. |
 | 6 | Structured Data Extraction | Prompt Eng. · Context |
 
+Beyond the six scenario pages: **`/drill`** — a recognition drill (place a requirement
+fragment / log excerpt / stakeholder quote by scenario or domain; aggregate accuracy
+persists under `esa:drill:v1`), and reverse-link chips — domain badges and `TS x.y`
+mandate tags deep-link into the parent playbook (`/domains/d{n}`, `/patterns/:id`).
+The parent's base URL defaults to `http://localhost:5173`; override with
+`VITE_PARENT_BASE_URL` at build time.
+
 ## Run locally
 
 ```bash

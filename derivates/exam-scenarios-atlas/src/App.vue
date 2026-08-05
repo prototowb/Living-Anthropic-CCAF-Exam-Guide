@@ -16,6 +16,7 @@ import { RouterLink, RouterView } from 'vue-router'
         <nav class="text-sm text-ink-500 flex items-center gap-5">
           <RouterLink to="/" class="hover:text-ink-800 no-underline">Scenarios</RouterLink>
           <RouterLink to="/domains" class="hover:text-ink-800 no-underline">Domains</RouterLink>
+          <RouterLink to="/drill" class="hover:text-ink-800 no-underline">Drill</RouterLink>
           <RouterLink to="/about" class="hover:text-ink-800 no-underline">About</RouterLink>
         </nav>
       </div>

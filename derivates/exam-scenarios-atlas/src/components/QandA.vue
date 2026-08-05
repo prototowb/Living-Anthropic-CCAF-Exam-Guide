@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { reactive } from 'vue'
 import type { QnA } from '../data/types'
+import { mandateRefs } from '../data/parentLinks'
 
 const props = defineProps<{ items: QnA[] }>()
 
@@ -97,9 +98,23 @@ function classFor(i: number, key: 'A' | 'B' | 'C' | 'D', correct: 'A' | 'B' | 'C
       <Transition name="reveal">
         <div
           v-if="state[i].revealed"
-          class="mt-4 border-t border-ink-200 pt-3 text-[13px] text-ink-600 leading-relaxed max-w-prose"
+          class="mt-4 border-t border-ink-200 pt-3 space-y-2 max-w-prose"
         >
-          {{ item.explain }}
+          <p class="text-[13px] text-ink-600 leading-relaxed">{{ item.explain }}</p>
+          <div v-if="item.ref && mandateRefs(item.ref).length" class="flex flex-wrap gap-1.5">
+            <a
+              v-for="r in mandateRefs(item.ref)"
+              :key="r.ts"
+              :href="r.url"
+              target="_blank"
+              rel="noopener"
+              class="chip no-underline hover:bg-ink-50"
+              :title="`Study this mandate in the parent playbook (pattern: ${r.patternId})`"
+            >
+              <span class="font-mono">{{ r.ts }}</span>
+              <span class="text-ink-400 ml-1">{{ r.patternId }} ↗</span>
+            </a>
+          </div>
         </div>
       </Transition>
     </article>

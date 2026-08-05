@@ -2,6 +2,7 @@
 import { RouterLink } from 'vue-router'
 import { SCENARIOS } from '../data/scenarios'
 import { DOMAINS } from '../data/domains'
+import { DRILL_ITEMS } from '../data/drill'
 import DomainBadge from '../components/DomainBadge.vue'
 </script>
 
@@ -42,6 +43,22 @@ import DomainBadge from '../components/DomainBadge.vue'
             compact
           />
         </div>
+      </RouterLink>
+    </section>
+
+    <section class="frame p-6 flex flex-wrap items-center gap-4">
+      <div class="flex-1 min-w-[260px] space-y-1">
+        <h2 class="section-h mb-1">Recognition drill</h2>
+        <p class="text-sm text-ink-500 max-w-prose">
+          Reading a fragment and naming the scenario is the actual exam skill. Drill it against
+          {{ DRILL_ITEMS.length }} authored fragments — requirements, log excerpts, stakeholder quotes.
+        </p>
+      </div>
+      <RouterLink
+        to="/drill"
+        class="px-4 py-2 rounded-md bg-ink-800 text-ink-50 text-sm font-medium hover:bg-ink-700 no-underline"
+      >
+        Start drilling →
       </RouterLink>
     </section>
 

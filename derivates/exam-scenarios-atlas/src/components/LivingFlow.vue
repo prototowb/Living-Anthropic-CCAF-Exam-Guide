@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import type { FlowStep } from '../data/types'
+import { mandateRefs } from '../data/parentLinks'
 
 const props = defineProps<{ steps: FlowStep[] }>()
 
@@ -106,8 +107,24 @@ const stopColour: Record<NonNullable<FlowStep['stopReason']>, string> = {
           </div>
         </div>
 
-        <div v-if="step.mandate" class="text-[11.5px] text-ink-500 italic max-w-prose">
-          <span class="text-domain-5 font-medium not-italic">Mandate:</span> {{ step.mandate }}
+        <div v-if="step.mandate" class="max-w-prose space-y-1.5">
+          <div class="text-[11.5px] text-ink-500 italic">
+            <span class="text-domain-5 font-medium not-italic">Mandate:</span> {{ step.mandate }}
+          </div>
+          <div v-if="mandateRefs(step.mandate).length" class="flex flex-wrap gap-1.5">
+            <a
+              v-for="r in mandateRefs(step.mandate)"
+              :key="r.ts"
+              :href="r.url"
+              target="_blank"
+              rel="noopener"
+              class="chip no-underline hover:bg-ink-50"
+              :title="`Study this mandate in the parent playbook (pattern: ${r.patternId})`"
+            >
+              <span class="font-mono">{{ r.ts }}</span>
+              <span class="text-ink-400 ml-1">{{ r.patternId }} ↗</span>
+            </a>
+          </div>
         </div>
       </div>
 

@@ -1,7 +1,7 @@
 {
   "name": "exam-scenarios-atlas",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "description": "Living atlas of the six Claude Certified Architect — Foundations exam scenarios. Each scenario has an infographic, a steppable code/flow walkthrough, a worked example, and the exam-guide sample Q&A.",
   "scripts": {
@@ -11,6 +11,7 @@
     "typecheck": "vue-tsc --noEmit"
   },
   "dependencies": {
+    "pinia": "^2.3.1",
     "vue": "^3.5.13",
     "vue-router": "^4.4.5"
   },

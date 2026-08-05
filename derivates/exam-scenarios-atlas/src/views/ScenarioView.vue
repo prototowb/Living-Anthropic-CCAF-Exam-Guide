@@ -38,7 +38,7 @@ const prev = computed(() => {
       </h1>
       <p class="text-ink-600 max-w-prose leading-relaxed">{{ scenario.hook }}</p>
       <div class="flex flex-wrap gap-2 pt-1">
-        <DomainBadge v-for="d in scenario.primaryDomains" :key="d" :id="d" />
+        <DomainBadge v-for="d in scenario.primaryDomains" :key="d" :id="d" linked />
       </div>
     </header>
 
