@@ -1,5 +1,56 @@
 import type { Scenario } from '../types'
 
+const foils: Scenario['foils'] = [
+  {
+    title: 'Subagents sharing one context',
+    ref: 'TS 1.2',
+    wrong: {
+      label: 'One messages array for everyone',
+      lang: 'ts',
+      body: `// every "subagent" appends to the same history
+const messages = [];
+for (const angle of angles) {
+  messages.push({ role: "user", content: prompt(angle) });
+  const res = await client.messages.create({ messages, … });
+  messages.push({ role: "assistant", content: res.content });
+}`,
+    },
+    right: {
+      label: 'Isolated contexts, coordinator merges',
+      lang: 'ts',
+      body: `const findings = await Promise.all(
+  angles.map((a) => runSubagent({
+    system: SUBAGENT_PROMPT(a),
+    messages: [{ role: "user", content: a.question }],
+  })),
+);
+return synthesise(findings); // only summaries re-enter`,
+    },
+    failure:
+      "Shared history cross-contaminates the workers (angle B starts answering angle A's question) and the context grows with every worker instead of staying flat.",
+  },
+  {
+    title: 'Serial dispatch of independent research',
+    ref: 'TS 1.3',
+    wrong: {
+      label: 'await in a for-loop',
+      lang: 'ts',
+      body: `for (const q of questions) {
+  results.push(await runSubagent(q)); // 5 × 40s = 200s
+}`,
+    },
+    right: {
+      label: 'Parallel where independent',
+      lang: 'ts',
+      body: `const results = await Promise.all(
+  questions.map(runSubagent), // wall-clock ≈ slowest one
+);`,
+    },
+    failure:
+      'Independent investigations serialised means wall-clock equals the sum — the coordinator idles while each worker runs alone.',
+  },
+]
+
 export const scenario3: Scenario = {
   id: 'multi-agent-research',
   number: 3,
@@ -176,6 +227,7 @@ keep BOTH values with attribution rather than choosing.
       ref: 'Sample Q9 · TS 2.3',
     },
   ],
+  foils,
   takeaways: [
     'Subagents inherit nothing — pass complete findings into each subagent\'s prompt.',
     'Parallel spawn = multiple Task calls in ONE assistant response, not across turns.',

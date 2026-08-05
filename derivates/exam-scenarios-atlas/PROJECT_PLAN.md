@@ -64,7 +64,7 @@ Dev server port: 5180 (parent uses 5173, companion 5174 — keep them co-runnabl
 | No external network at rest | Trivially exceeded — no network, ever. |
 | One source of truth per concept | `SCENARIOS` + `DOMAINS`; every view is a projection. |
 | Reverse links everywhere | v0.1 has domain badges + prev/next ring; deep reverse links into the parent's `/domains/:id` are the first v0.2 item. |
-| Anti-pattern foils | Present inside Q&A explanations (why each wrong option fails) and escalation-foil flow steps; a dedicated per-scenario foils section is roadmapped. |
+| Anti-pattern foils | Dedicated per-scenario foils section since v0.3 (`foils` required on `Scenario`; wrong way beside right way with a one-line failure caption), plus foil-by-foil Q&A explanations and escalation-foil flow steps. |
 
 ## 8. Quality bars
 
@@ -72,7 +72,7 @@ Dev server port: 5180 (parent uses 5173, companion 5174 — keep them co-runnabl
 |---|---|---|
 | **v0.1.0 — Skeleton walks** | `typecheck` + `build` clean. All 6 scenario pages with the four-piece anatomy. All 12 exam-guide sample questions placed. 4 routes. Zero runtime network. | ✅ This PR (salvaged from the parked worktree scaffold and verified). |
 | **v0.2.0 — Cross-linked** | Reverse-link chips from every scenario page into the parent playbook's `/domains/:id` (and per-mandate anchors where the parent exposes them). A **drill mode** (`/drill`): show a requirement fragment or log excerpt, learner picks which scenario/domain it belongs to — the recognition skill itself. localStorage progress under versioned keys (`esa:*:v1`). | ✅ Shipped. Mandate tags resolve to the parent's `/patterns/:id` via the checked-in `taskRef` map in `src/data/parentLinks.ts` (better than anchors — the parent routes every task statement); domain badges deep-link to `/domains/d{n}`; parent base URL overridable via `VITE_PARENT_BASE_URL` (no public deploy exists yet). Drill: 18 authored fragments (12 scenario-asks, 6 domain-asks), Pinia store, aggregate-only persistence under `esa:drill:v1` — runs reset by design (§9.2 decided: Q&A reveal state stays session-only). |
-| **v0.3.0 — Atlas deepens** | Scenario × domain **matrix view** (`/matrix`) with mandate chips at the intersections. Dedicated anti-pattern-foils section per scenario (wrong way beside right way, one-line "why this fails"). Print-friendly per-scenario study sheet (`?print=1`). | Planned |
+| **v0.3.0 — Atlas deepens** | Scenario × domain **matrix view** (`/matrix`) with mandate chips at the intersections. Dedicated anti-pattern-foils section per scenario (wrong way beside right way, one-line "why this fails"). Print-friendly per-scenario study sheet (`?print=1`). | ✅ Shipped. Matrix is a pure projection (`src/data/matrix.ts` scans flow mandates + Q&A refs + foil refs for `TS x.y`; nothing authored separately); primary-domain cells shaded, chips open the parent pattern. Foils: `foils` is a **required** field on `Scenario` (12 authored pairs, 2 per scenario) rendered by `AntiPatternFoil.vue` — closes the last adapted row in §7. Study sheet: `?print=1` renders a condensed layout (flow expanded, answers marked) with `@media print` styles; linked from each scenario header. |
 
 ## 9. Open decisions
 

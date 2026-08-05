@@ -70,3 +70,20 @@ h4 {
   opacity: 0;
   transform: translateY(-4px);
 }
+
+/* Print study sheet (?print=1 on a scenario page) */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  .avoid-break {
+    break-inside: avoid;
+  }
+  .print-sheet {
+    max-width: none;
+    padding: 0;
+  }
+  body {
+    font-size: 11px;
+  }
+}

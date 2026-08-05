@@ -4,7 +4,7 @@ import { RouterLink, RouterView } from 'vue-router'
 
 <template>
   <div class="min-h-screen flex flex-col">
-    <header class="border-b border-ink-200 bg-white/80 backdrop-blur sticky top-0 z-10">
+    <header class="no-print border-b border-ink-200 bg-white/80 backdrop-blur sticky top-0 z-10">
       <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
         <RouterLink to="/" class="no-underline flex items-center gap-3">
           <span class="inline-block h-7 w-7 rounded-md bg-ink-800 text-ink-50 grid place-items-center font-mono text-sm">6</span>
@@ -16,6 +16,7 @@ import { RouterLink, RouterView } from 'vue-router'
         <nav class="text-sm text-ink-500 flex items-center gap-5">
           <RouterLink to="/" class="hover:text-ink-800 no-underline">Scenarios</RouterLink>
           <RouterLink to="/domains" class="hover:text-ink-800 no-underline">Domains</RouterLink>
+          <RouterLink to="/matrix" class="hover:text-ink-800 no-underline">Matrix</RouterLink>
           <RouterLink to="/drill" class="hover:text-ink-800 no-underline">Drill</RouterLink>
           <RouterLink to="/about" class="hover:text-ink-800 no-underline">About</RouterLink>
         </nav>
@@ -26,7 +27,7 @@ import { RouterLink, RouterView } from 'vue-router'
       <RouterView />
     </main>
 
-    <footer class="border-t border-ink-200 bg-white">
+    <footer class="no-print border-t border-ink-200 bg-white">
       <div class="max-w-6xl mx-auto px-6 py-6 text-xs text-ink-400 flex items-center justify-between">
         <div>
           Sibling derivative of

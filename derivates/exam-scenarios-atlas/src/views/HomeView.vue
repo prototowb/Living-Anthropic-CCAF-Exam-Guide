@@ -62,6 +62,22 @@ import DomainBadge from '../components/DomainBadge.vue'
       </RouterLink>
     </section>
 
+    <section class="frame p-6 flex flex-wrap items-center gap-4">
+      <div class="flex-1 min-w-[260px] space-y-1">
+        <h2 class="section-h mb-1">Scenario × domain matrix</h2>
+        <p class="text-sm text-ink-500 max-w-prose">
+          Every task statement each scenario cites, placed at its intersection with the domain
+          that owns it — derived live from the scenario data.
+        </p>
+      </div>
+      <RouterLink
+        to="/matrix"
+        class="px-4 py-2 rounded-md border border-ink-300 text-ink-700 text-sm font-medium hover:bg-ink-50 no-underline"
+      >
+        Open the matrix →
+      </RouterLink>
+    </section>
+
     <section class="frame p-6 space-y-4">
       <h2 class="section-h mb-1">Domain weighting</h2>
       <p class="text-sm text-ink-500 max-w-prose">

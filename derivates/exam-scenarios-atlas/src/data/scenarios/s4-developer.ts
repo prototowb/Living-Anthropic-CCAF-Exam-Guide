@@ -1,5 +1,49 @@
 import type { Scenario } from '../types'
 
+const foils: Scenario['foils'] = [
+  {
+    title: 'Building retrieval infra before trying built-ins',
+    ref: 'TS 2.5',
+    wrong: {
+      label: 'Embed-everything pipeline',
+      lang: 'md',
+      body: `1. Chunk the repo into 512-token windows
+2. Embed into a vector store, re-index on every merge
+3. RAG top-k into the prompt
+4. Debug why the answer cites deleted code`,
+    },
+    right: {
+      label: 'Agentic search with built-ins',
+      lang: 'md',
+      body: `Grep("registerHandler") → Glob("src/handlers/*.ts")
+→ Read(the two matches) → answer with live file paths.
+No index, no staleness — the repo IS the source.`,
+    },
+    failure:
+      'A vector index of a fast-moving repo is stale the day it ships; agentic Grep/Glob/Read reads the tree as it is right now, with zero infrastructure.',
+  },
+  {
+    title: 'Answers without citations',
+    ref: 'TS 5.6',
+    wrong: {
+      label: 'Confident prose',
+      lang: 'md',
+      body: `"Rate limiting is handled in the API gateway middleware
+using a sliding window." (Where? Which file? Is that
+still true after last week's refactor?)`,
+    },
+    right: {
+      label: 'Cited file paths',
+      lang: 'md',
+      body: `"Sliding-window rate limiting:
+src/gateway/middleware/rateLimit.ts:41 (config in
+config/limits.yaml). Note: bypassed for /health."`,
+    },
+    failure:
+      'An uncited answer cannot be verified or trusted after the next refactor; file-path citations let the developer jump to the source and check in seconds.',
+  },
+]
+
 export const scenario4: Scenario = {
   id: 'developer-productivity',
   number: 4,
@@ -154,6 +198,7 @@ const migrations = await glob({ pattern: "**/migrations/*.sql" });`,
       ref: 'TS 2.4',
     },
   ],
+  foils,
   takeaways: [
     'Grep for content, Glob for filenames, Read for context, Edit/Write for modification, Bash for everything else.',
     'MCP tool quality lives in the description — make it specific enough that the model picks it over built-ins.',

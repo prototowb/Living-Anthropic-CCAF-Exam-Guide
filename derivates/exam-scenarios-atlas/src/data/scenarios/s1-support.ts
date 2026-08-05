@@ -1,5 +1,54 @@
 import type { Scenario } from '../types'
 
+const foils: Scenario['foils'] = [
+  {
+    title: 'Refund ceiling as a prompt instruction',
+    ref: 'TS 1.5',
+    wrong: {
+      label: 'System prompt (hope)',
+      lang: 'md',
+      body: `IMPORTANT: Never process refunds above $500.
+Always verify the customer before any account action.
+(…the model complies ~98% of the time…)`,
+    },
+    right: {
+      label: 'PreToolUse hook (guarantee)',
+      lang: 'ts',
+      body: `if (name === "process_refund" && input.amount_usd > 500) {
+  return { allow: false, reason: "above_threshold",
+           redirectTo: "escalate_to_human" };
+}`,
+    },
+    failure:
+      'Prompt compliance is probabilistic; at financial consequence, 2% non-compliance is an incident review, not a rounding error.',
+  },
+  {
+    title: 'One mega-tool for everything',
+    ref: 'TS 2.1',
+    wrong: {
+      label: 'handle_customer(action, …)',
+      lang: 'jsonc',
+      body: `{
+  "name": "handle_customer",
+  "description": "Handles customer operations.",
+  "input_schema": { "properties": {
+    "action": { "enum": ["lookup","refund","cancel","escalate"] },
+    "payload": { "type": "object" } // anything goes
+  } }
+}`,
+    },
+    right: {
+      label: 'Granular tools, sharp boundaries',
+      lang: 'jsonc',
+      body: `// get_customer · lookup_order · process_refund · escalate_to_human
+// Each: narrow schema, rich description, structured
+// error envelope { isError, errorCategory, isRetryable }`,
+    },
+    failure:
+      'A grab-bag schema gives the model nothing to select on and collapses validation into one untyped payload — misroutes surface as production incidents instead of schema errors.',
+  },
+]
+
 export const scenario1: Scenario = {
   id: 'customer-support',
   number: 1,
@@ -195,6 +244,7 @@ export const preToolUse: PreToolUseHook = async ({ name, input, ctx }) => {
       ref: 'Sample Q3 · TS 5.2',
     },
   ],
+  foils,
   takeaways: [
     'Programmatic hooks beat prompt instructions whenever compliance is non-negotiable (refund ceilings, identity verification).',
     'Tool descriptions are the LLM\'s tool-selection contract — invest in them before adding routing layers.',

@@ -1,6 +1,13 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{vue,ts,tsx}'],
+  // Domain colour classes are built dynamically (`bg-domain-${id}` …) in
+  // HomeView and MatrixView, so the scanner can't see them.
+  safelist: [1, 2, 3, 4, 5].flatMap((n) => [
+    `bg-domain-${n}`,
+    `bg-domain-${n}/10`,
+    `text-domain-${n}`,
+  ]),
   theme: {
     extend: {
       colors: {

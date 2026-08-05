@@ -1,5 +1,52 @@
 import type { Scenario } from '../types'
 
+const foils: Scenario['foils'] = [
+  {
+    title: 'Asking nicely for JSON',
+    ref: 'TS 4.3',
+    wrong: {
+      label: 'Format-by-request',
+      lang: 'md',
+      body: `Please respond with valid JSON only, in exactly
+this format: { "vendor": …, "line_items": […] }
+# "Sure! Here's the JSON you asked for:\\n\\\`\\\`\\\`json …"`,
+    },
+    right: {
+      label: 'Schema-constrained tool use',
+      lang: 'ts',
+      body: `tools: [{ name: "record_invoice",
+  input_schema: INVOICE_SCHEMA }],   // checked into the repo
+tool_choice: { type: "tool", name: "record_invoice" }
+// The API guarantees shape; the validator guards semantics.`,
+    },
+    failure:
+      'Prose-wrapped JSON, trailing commentary, and drifting field names break the parser on item 800 of 10,000 — format must be constrained, not requested.',
+  },
+  {
+    title: 'Unbounded retry on validation failure',
+    ref: 'TS 4.4',
+    wrong: {
+      label: 'while (!valid) retry',
+      lang: 'ts',
+      body: `while (!validate(out)) {
+  out = await extract(doc); // same prompt, same doc,
+}                           // token bill: unbounded`,
+    },
+    right: {
+      label: 'Bounded retry, error fed back, then flag',
+      lang: 'ts',
+      body: `for (let i = 0; i < 2; i++) {
+  out = await extract(doc, lastError); // validator msg appended
+  if (validate(out)) return out;
+  lastError = validate.errors;
+}
+return flagForHuman(doc, lastError); // business, not transient`,
+    },
+    failure:
+      'Some inputs are genuinely unextractable; retrying identically forever turns one bad scan into an unbounded spend with no signal to a human.',
+  },
+]
+
 export const scenario6: Scenario = {
   id: 'structured-extraction',
   number: 6,
@@ -225,6 +272,7 @@ batch = client.messages.batches.create(requests=requests)
       ref: 'TS 5.5',
     },
   ],
+  foils,
   takeaways: [
     'tool_use + JSON schema + forced tool_choice = guaranteed structural validity.',
     'Schemas catch syntax; calculated-vs-stated fields and conflict_detected catch semantics.',

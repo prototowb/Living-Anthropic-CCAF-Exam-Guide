@@ -1,5 +1,50 @@
 import type { Scenario } from '../types'
 
+const foils: Scenario['foils'] = [
+  {
+    title: 'Conventions pasted into every prompt',
+    ref: 'TS 3.1',
+    wrong: {
+      label: 'Per-prompt style dump',
+      lang: 'md',
+      body: `> Refactor the auth module. Remember: we use pnpm not npm,
+> 2-space indent, no default exports, snake_case SQL, the
+> frontend team forbids barrel files, and… (900 tokens later)`,
+    },
+    right: {
+      label: 'CLAUDE.md hierarchy',
+      lang: 'md',
+      body: `CLAUDE.md              # repo-wide rules, loaded every session
+packages/web/CLAUDE.md # frontend-only rules, loaded on entry
+# The prompt stays about the task, not the conventions.`,
+    },
+    failure:
+      'Conventions restated per prompt drift, get truncated, and burn context; a hierarchy loads the right rules at the right scope every time.',
+  },
+  {
+    title: 'Big refactor executed directly',
+    ref: 'TS 3.4',
+    wrong: {
+      label: 'Direct execution',
+      lang: 'bash',
+      body: `> migrate all 14 API handlers to the new error envelope
+· Editing handlers/user.ts …
+· Editing handlers/billing.ts …   # 12 files later, review
+· Editing handlers/orders.ts …    # surface is unmanageable`,
+    },
+    right: {
+      label: 'Plan mode first',
+      lang: 'bash',
+      body: `> /plan migrate the handlers to the new error envelope
+· Plan: 3 phases, touched files listed, migration order,
+  rollback note. Approve? [y/n]
+# Edits only start after the plan survives review.`,
+    },
+    failure:
+      'A 14-file direct edit produces a diff no one can review; the plan is the reviewable artifact, and re-scoping is cheap before the first edit.',
+  },
+]
+
 export const scenario2: Scenario = {
   id: 'code-generation',
   number: 2,
@@ -175,6 +220,7 @@ You are a codebase tour guide. Survey \`$1\`. Return ONLY a 1-page summary with:
       ref: 'Sample Q6 · TS 3.3',
     },
   ],
+  foils,
   takeaways: [
     'Use .claude/rules/ with glob paths when a convention spans the tree; use a subdirectory CLAUDE.md when a convention is local.',
     'Plan mode is for architectural scope. Direct execution is for well-scoped single-file work. When in doubt, plan.',

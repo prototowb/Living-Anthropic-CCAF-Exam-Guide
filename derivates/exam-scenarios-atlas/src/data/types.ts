@@ -35,6 +35,24 @@ export interface CodeBlock {
   body: string
 }
 
+export interface FoilSide {
+  label: string
+  /** Short code/config sketch; rendered monospace. */
+  body: string
+  lang: CodeBlock['lang']
+}
+
+/** Wrong way beside right way, with a one-line "why this fails" caption. */
+export interface Foil {
+  title: string
+  wrong: FoilSide
+  right: FoilSide
+  /** One line: the failure mode the wrong way produces. */
+  failure: string
+  /** Mandate ref, e.g. "TS 1.5" — resolved to a parent-playbook pattern link. */
+  ref?: string
+}
+
 export interface InfographicSpec {
   /** One of the named diagram archetypes the Infographic component knows how to render. */
   kind:
@@ -67,6 +85,8 @@ export interface Scenario {
   code: CodeBlock[]
   infographic: InfographicSpec
   qna: QnA[]
+  /** Anti-pattern foils — the derivates family's principle 5, one section per scenario. */
+  foils: Foil[]
   /** Two or three key takeaways. */
   takeaways: string[]
 }
