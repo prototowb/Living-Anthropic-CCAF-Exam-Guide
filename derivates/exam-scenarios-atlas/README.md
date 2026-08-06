@@ -49,9 +49,11 @@ npm run dev
 Open the URL Vite prints (usually <http://localhost:5180>).
 
 ```bash
-npm run typecheck   # vue-tsc --noEmit
-npm run build       # vue-tsc + vite build
-npm run preview     # serve the built bundle
+npm run typecheck    # vue-tsc --noEmit
+npm run build        # vue-tsc + vite build
+npm run preview      # serve the built bundle
+npm run check:drill  # offline checks of the adaptive-drill sampling
+                     # (weak-spot bias statistics + corrupt-stats safety)
 ```
 
 ## Tech

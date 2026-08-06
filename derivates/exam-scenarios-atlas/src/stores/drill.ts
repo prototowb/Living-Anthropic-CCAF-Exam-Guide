@@ -30,6 +30,52 @@ const emptyStats = (): DrillStats => ({
   runs: [],
 })
 
+/**
+ * localStorage may hold valid JSON of the wrong shape (older versions,
+ * manual edits, other tools). Every field is rebuilt defensively — a
+ * partial or poisoned value must degrade to empty, never crash a view.
+ */
+function toBucket(raw: unknown): Bucket | null {
+  if (typeof raw !== 'object' || raw === null) return null
+  const attempts = Number((raw as Bucket).attempts)
+  const correct = Number((raw as Bucket).correct)
+  if (!Number.isFinite(attempts) || !Number.isFinite(correct) || attempts < 0 || correct < 0)
+    return null
+  return { attempts, correct: Math.min(correct, attempts) }
+}
+
+function normalizeStats(raw: unknown): DrillStats {
+  const stats = emptyStats()
+  if (typeof raw !== 'object' || raw === null) return stats
+  const r = raw as Record<string, unknown>
+  const attempts = Number(r.attempts)
+  const correct = Number(r.correct)
+  if (Number.isFinite(attempts) && attempts >= 0) stats.attempts = attempts
+  if (Number.isFinite(correct) && correct >= 0) stats.correct = Math.min(correct, stats.attempts)
+  for (const [src, dst] of [
+    [r.byScenario, stats.byScenario],
+    [r.byDomain, stats.byDomain],
+  ] as const) {
+    if (typeof src !== 'object' || src === null) continue
+    for (const [key, value] of Object.entries(src)) {
+      const bucket = toBucket(value)
+      if (bucket && Number.isInteger(Number(key))) dst[Number(key)] = bucket
+    }
+  }
+  if (Array.isArray(r.runs)) {
+    stats.runs = r.runs
+      .filter(
+        (run): run is DrillStats['runs'][number] =>
+          typeof run === 'object' &&
+          run !== null &&
+          Number.isFinite(Number((run as { total: unknown }).total)) &&
+          Number.isFinite(Number((run as { correct: unknown }).correct)),
+      )
+      .slice(0, 20)
+  }
+  return stats
+}
+
 function shuffled<T>(items: T[]): T[] {
   const a = [...items]
   for (let i = a.length - 1; i > 0; i--) {
@@ -44,7 +90,7 @@ export type RunFocus = 'all' | 'weak' | number
 
 export const useDrillStore = defineStore('drill', {
   state: () => ({
-    stats: load<DrillStats>(KEY, emptyStats()),
+    stats: normalizeStats(load<unknown>(KEY, null)),
     phase: 'idle' as 'idle' | 'running' | 'done',
     focus: 'all' as RunFocus,
     order: [] as string[],

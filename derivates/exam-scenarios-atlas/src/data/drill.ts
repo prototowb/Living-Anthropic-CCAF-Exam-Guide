@@ -35,12 +35,19 @@ export interface DrillWeights {
  * How much a run should favour this item: 1 (mastered) … 4 (unseen).
  * Unseen buckets count as weakest — the drill pulls you toward what
  * you haven't faced before what you've merely gotten wrong.
+ * Corrupt buckets (non-numeric, negative, correct > attempts) must never
+ * yield a weight outside [1, 4]: negative or NaN weights silently break
+ * the sampling loop, so anything unparseable counts as unseen.
  */
 export function itemWeight(item: DrillItem, stats: DrillWeights): number {
   const bucket =
-    item.ask === 'scenario' ? stats.byScenario[item.answer] : stats.byDomain[item.answer]
-  if (!bucket || bucket.attempts === 0) return 4
-  return 1 + 3 * (1 - bucket.correct / bucket.attempts)
+    item.ask === 'scenario' ? stats.byScenario?.[item.answer] : stats.byDomain?.[item.answer]
+  if (!bucket) return 4
+  const attempts = Number(bucket.attempts)
+  const correct = Number(bucket.correct)
+  if (!Number.isFinite(attempts) || !Number.isFinite(correct) || attempts <= 0) return 4
+  const accuracy = Math.min(1, Math.max(0, correct / attempts))
+  return 1 + 3 * (1 - accuracy)
 }
 
 /** Weighted sampling without replacement — the whole pool, weak spots first-ish. */
