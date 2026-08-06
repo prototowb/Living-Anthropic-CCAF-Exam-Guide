@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 import { domains, getDomain } from '@/data/domains';
-import { quizSections } from '@/data/quizData';
+import { quizSections, type QuizQuestion, type QuizSection } from '@/data/quizData';
 import PageHeader from '@/components/PageHeader.vue';
 import CodeBlock from '@/components/CodeBlock.vue';
 
@@ -19,16 +19,29 @@ function printPage() {
   window.print();
 }
 
+// Union of the domain-level relatedQuiz list and the per-pattern
+// quizQuestionRefs — the two drift (patterns reference questions the domain
+// list forgot), and both the related section and the study sheet should show
+// everything the domain touches.
 const linkedQuestions = computed(() => {
   if (!domain.value) return [];
-  return domain.value.relatedQuiz.flatMap((r) => {
-    const section = quizSections.find((s) => s.id === r.sectionId);
-    if (!section) return [];
-    return r.questionIds.map((qid) => {
-      const q = section.questions.find((q) => q.id === qid);
-      return q ? { section, q } : null;
-    }).filter(Boolean) as { section: typeof section; q: NonNullable<ReturnType<typeof section.questions.find>> }[];
-  });
+  const refs = [
+    ...domain.value.relatedQuiz.flatMap((r) =>
+      r.questionIds.map((qid) => ({ sectionId: r.sectionId, questionId: qid })),
+    ),
+    ...domain.value.patterns.flatMap((p) => p.quizQuestionRefs ?? []),
+  ];
+  const seen = new Set<string>();
+  const out: { section: QuizSection; q: QuizQuestion }[] = [];
+  for (const ref of refs) {
+    const key = `${ref.sectionId}:${ref.questionId}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const section = quizSections.find((s) => s.id === ref.sectionId);
+    const q = section?.questions.find((q) => q.id === ref.questionId);
+    if (section && q) out.push({ section, q });
+  }
+  return out;
 });
 </script>
 
