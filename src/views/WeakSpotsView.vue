@@ -1,19 +1,74 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import { RouterLink } from 'vue-router';
-import { getQuestion, getQuizSection, type OptionLetter } from '@/data/quizData';
+import { RouterLink, useRoute } from 'vue-router';
+import {
+  getQuestion,
+  getQuizSection,
+  type OptionLetter,
+  type QuizQuestion,
+  type QuizSection,
+} from '@/data/quizData';
 import { useQuizStore } from '@/stores/quiz';
 import {
   intervalLabel,
   SCHEDULES,
   useWeakSpotsStore,
   type ScheduleId,
+  type WeakSpotEntry,
 } from '@/stores/weakSpots';
 import { getPatternsForQuestion } from '@/data/reverseLinks';
 import PageHeader from '@/components/PageHeader.vue';
 
 const quizStore = useQuizStore();
 const weakSpots = useWeakSpotsStore();
+const route = useRoute();
+
+// AIP-053 — printable cram sheet (`/practice?print=1`). Same print system as
+// the AIP-052 domain sheets (print-sheet / no-print / avoid-break + the
+// @media print block in main.scss); the content here is the learner's own
+// Leitner entries instead of static domain data.
+const printMode = computed(() => route.query.print === '1');
+
+function printPage() {
+  window.print();
+}
+
+interface SheetItem {
+  entry: WeakSpotEntry;
+  section: QuizSection;
+  q: QuizQuestion;
+}
+
+// Snapshot of "now" for the due/scheduled split — a print sheet is a moment
+// in time, so one timestamp at mount keeps the two lists consistent.
+const sheetNow = Date.now();
+
+// Weakest first: low box before high box, then most-often-wrong first.
+const sheetItems = computed<SheetItem[]>(() =>
+  Object.values(weakSpots.entries)
+    .slice()
+    .sort((a, b) => a.box - b.box || b.wrongCount - a.wrongCount)
+    .flatMap((entry) => {
+      const section = getQuizSection(entry.sectionId);
+      const q = getQuestion(entry.sectionId, entry.qid);
+      return section && q ? [{ entry, section, q }] : [];
+    }),
+);
+
+const sheetDueItems = computed(() => sheetItems.value.filter((i) => i.entry.dueAt <= sheetNow));
+const sheetScheduledItems = computed(() =>
+  sheetItems.value.filter((i) => i.entry.dueAt > sheetNow),
+);
+
+function dueInLabel(dueAt: number): string {
+  const ms = dueAt - sheetNow;
+  if (ms <= 0) return 'now';
+  const minutes = Math.round(ms / 60_000);
+  if (minutes < 60) return `in ${minutes} min`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 36) return `in ${hours} h`;
+  return `in ${Math.round(hours / 24)} d`;
+}
 
 const dueItems = computed(() => weakSpots.dueItems);
 const currentIndex = ref(0);
@@ -153,6 +208,89 @@ const subtitle = computed(
 </script>
 
 <template>
+  <!-- ── Print cram sheet (?print=1) ──────────────────────────────── -->
+  <div v-if="printMode" class="print-sheet bg-white text-ink-800 rounded-lg p-8">
+    <div class="no-print flex items-center justify-between mb-6 pb-4 border-b border-ink-200">
+      <RouterLink
+        :to="{ name: 'practice' }"
+        class="text-sm text-ink-500 hover:text-ink-800"
+      >
+        ← Back to practice
+      </RouterLink>
+      <button
+        type="button"
+        class="px-4 py-2 rounded-md bg-ink-800 text-ink-50 text-sm font-medium hover:bg-ink-700"
+        @click="printPage"
+      >
+        Print
+      </button>
+    </div>
+
+    <header class="mb-6">
+      <div class="sheet-h mb-1">Architect Playbook · Cram sheet · Personal weak spots</div>
+      <h1 class="text-2xl font-bold text-ink-900 leading-tight">Weak-spots cram sheet</h1>
+      <p class="text-[13px] text-ink-500 mt-1">
+        {{ totalEnrolled }} enrolled · {{ sheetDueItems.length }} due now ·
+        {{ weakSpots.schedule.label }} schedule · weakest first (box, then times wrong)
+      </p>
+    </header>
+
+    <p v-if="totalEnrolled === 0" class="text-[13px] text-ink-600 leading-relaxed">
+      Nothing enrolled yet — every wrong quiz answer enrolls automatically. Answer some
+      quiz questions, then come back for a sheet of exactly what you keep getting wrong.
+    </p>
+
+    <template v-else>
+      <section
+        v-for="group in [
+          { title: 'Due now', items: sheetDueItems },
+          { title: 'Scheduled', items: sheetScheduledItems },
+        ]"
+        :key="group.title"
+        class="mb-6"
+      >
+        <template v-if="group.items.length">
+          <h2 class="sheet-h mb-2">{{ group.title }} ({{ group.items.length }})</h2>
+          <div v-for="item in group.items" :key="`${item.entry.sectionId}:${item.entry.qid}`" class="mb-4 avoid-break">
+            <div class="font-mono text-[11px] text-ink-400 mb-0.5">
+              {{ item.section.shortTitle }} · Q{{ item.q.id }} · box {{ item.entry.box }} ·
+              wrong ×{{ item.entry.wrongCount
+              }}<template v-if="item.entry.dueAt > sheetNow">
+                · due {{ dueInLabel(item.entry.dueAt) }}</template
+              >
+            </div>
+            <p class="text-[12.5px] text-ink-800 font-medium leading-relaxed whitespace-pre-line">
+              {{ item.q.text }}
+            </p>
+            <ul class="text-[12px] text-ink-600 mt-1 space-y-0.5">
+              <li
+                v-for="o in item.q.options"
+                :key="o.letter"
+                :class="o.letter === item.q.correct ? 'font-medium text-ink-800' : ''"
+              >
+                <span class="font-mono">{{ o.letter === item.q.correct ? '✓' : '·' }} {{ o.letter }}.</span>
+                {{ o.text }}
+              </li>
+            </ul>
+            <p class="text-[11.5px] text-ink-500 mt-1 leading-relaxed">{{ item.q.explanation }}</p>
+          </div>
+        </template>
+      </section>
+    </template>
+  </div>
+
+  <!-- ── Interactive view ─────────────────────────────────────────── -->
+  <template v-else>
+  <div v-if="totalEnrolled > 0" class="flex items-center gap-3 text-xs text-ink-400 mb-2">
+    <span class="flex-1"></span>
+    <RouterLink
+      :to="{ name: 'practice', query: { print: '1' } }"
+      class="hover:text-ink-200"
+    >
+      Cram sheet ⎙
+    </RouterLink>
+  </div>
+
   <PageHeader
     eyebrow="Spaced repetition"
     title="Practice your weak spots"
@@ -300,4 +438,15 @@ const subtitle = computed(
       </div>
     </template>
   </section>
+  </template>
 </template>
+
+<style scoped>
+.sheet-h {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #7c8699; /* ink-400 */
+}
+</style>
