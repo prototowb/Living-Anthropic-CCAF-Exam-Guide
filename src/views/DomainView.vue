@@ -1,16 +1,23 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { RouterLink, useRouter } from 'vue-router';
-import { getDomain } from '@/data/domains';
+import { RouterLink, useRoute, useRouter } from 'vue-router';
+import { domains, getDomain } from '@/data/domains';
 import { quizSections } from '@/data/quizData';
 import PageHeader from '@/components/PageHeader.vue';
 import CodeBlock from '@/components/CodeBlock.vue';
 
 const props = defineProps<{ id: string }>();
+const route = useRoute();
 const router = useRouter();
 
 const domain = computed(() => getDomain(props.id));
 if (!domain.value) router.replace({ name: 'domains' });
+
+const printMode = computed(() => route.query.print === '1');
+
+function printPage() {
+  window.print();
+}
 
 const linkedQuestions = computed(() => {
   if (!domain.value) return [];
@@ -26,9 +33,84 @@ const linkedQuestions = computed(() => {
 </script>
 
 <template>
-  <template v-if="domain">
-    <div class="flex items-center justify-between text-xs text-ink-400 mb-2">
+  <!-- ── Print study sheet (?print=1) ─────────────────────────────── -->
+  <div v-if="domain && printMode" class="print-sheet bg-white text-ink-800 rounded-lg p-8">
+    <div class="no-print flex items-center justify-between mb-6 pb-4 border-b border-ink-200">
+      <RouterLink
+        :to="{ name: 'domain', params: { id: domain.id } }"
+        class="text-sm text-ink-500 hover:text-ink-800"
+      >
+        ← Back to interactive view
+      </RouterLink>
+      <button
+        type="button"
+        class="px-4 py-2 rounded-md bg-ink-800 text-ink-50 text-sm font-medium hover:bg-ink-700"
+        @click="printPage"
+      >
+        Print
+      </button>
+    </div>
+
+    <header class="mb-6">
+      <div class="sheet-h mb-1">
+        Architect Playbook · Study sheet · Domain {{ domain.number }} of {{ domains.length }}
+      </div>
+      <h1 class="text-2xl font-bold text-ink-900 leading-tight">{{ domain.title }}</h1>
+      <p class="text-[13px] text-ink-500 mt-1">{{ domain.subtitle }}</p>
+      <p class="text-[13px] text-ink-600 mt-2 leading-relaxed">{{ domain.description }}</p>
+    </header>
+
+    <section class="mb-6">
+      <h2 class="sheet-h mb-2">Patterns ({{ domain.patterns.length }})</h2>
+      <div v-for="p in domain.patterns" :key="p.id" class="mb-3 avoid-break">
+        <div class="text-[13px] font-semibold text-ink-800">
+          {{ p.title }}
+          <span class="font-mono font-normal text-[11px] text-ink-400">
+            · task {{ p.taskRef }} · {{ p.source }}</span
+          >
+        </div>
+        <p class="text-[12.5px] text-ink-600 leading-relaxed">{{ p.summary }}</p>
+        <p v-if="p.antiPattern" class="text-[12px] text-ink-500 leading-relaxed">
+          ✗ {{ p.antiPattern.title }} — {{ p.antiPattern.failureMode }}
+        </p>
+      </div>
+    </section>
+
+    <section v-if="linkedQuestions.length" class="mb-6">
+      <h2 class="sheet-h mb-2">Linked quiz questions (answers marked)</h2>
+      <div v-for="(item, i) in linkedQuestions" :key="i" class="mb-4 avoid-break">
+        <div class="font-mono text-[11px] text-ink-400 mb-0.5">
+          {{ item.section.shortTitle }} · Q{{ item.q.id }}
+        </div>
+        <p class="text-[12.5px] text-ink-800 font-medium leading-relaxed whitespace-pre-line">
+          {{ item.q.text }}
+        </p>
+        <ul class="text-[12px] text-ink-600 mt-1 space-y-0.5">
+          <li
+            v-for="o in item.q.options"
+            :key="o.letter"
+            :class="o.letter === item.q.correct ? 'font-medium text-ink-800' : ''"
+          >
+            <span class="font-mono">{{ o.letter === item.q.correct ? '✓' : '·' }} {{ o.letter }}.</span>
+            {{ o.text }}
+          </li>
+        </ul>
+        <p class="text-[11.5px] text-ink-500 mt-1 leading-relaxed">{{ item.q.explanation }}</p>
+      </div>
+    </section>
+  </div>
+
+  <!-- ── Interactive view ─────────────────────────────────────────── -->
+  <template v-else-if="domain">
+    <div class="flex items-center gap-3 text-xs text-ink-400 mb-2">
       <RouterLink :to="{ name: 'domains' }">← All domains</RouterLink>
+      <span class="flex-1"></span>
+      <RouterLink
+        :to="{ name: 'domain', params: { id: domain.id }, query: { print: '1' } }"
+        class="hover:text-ink-200"
+      >
+        Study sheet ⎙
+      </RouterLink>
       <span class="badge" :class="`badge--${domain.badgeClass}`">Domain {{ domain.number }}</span>
     </div>
 
@@ -85,5 +167,13 @@ const linkedQuestions = computed(() => {
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.sheet-h {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #7c8699; /* ink-400 */
 }
 </style>

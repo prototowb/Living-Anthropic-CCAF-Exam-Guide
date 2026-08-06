@@ -21,3 +21,40 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+// Print study sheet support (AIP-052) — mirrors the pattern in
+// derivates/exam-scenarios-atlas/src/styles/main.css.
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .avoid-break {
+    break-inside: avoid;
+  }
+
+  body {
+    background: white;
+    font-size: 11px;
+  }
+
+  .app-shell {
+    display: block;
+  }
+
+  .app-shell__sidebar {
+    display: none;
+  }
+
+  .app-shell__main {
+    max-width: none;
+    padding: 0;
+  }
+
+  .print-sheet {
+    max-width: none;
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
