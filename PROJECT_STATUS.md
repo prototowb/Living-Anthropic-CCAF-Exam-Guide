@@ -95,7 +95,7 @@ bundle:   "≈ 105 kB JS gzipped, ≈ 40 kB CSS gzipped (route-level lazy chunks
 
 ## 🎫 Active Tickets
 
-- **AIP-053** — **Parent: personalized weak-spots cram sheet**. `/practice?print=1` renders a printable sheet of the learner's enrolled weak-spot questions from `useWeakSpotsStore` (Leitner entries: `box`, `dueAt`, `wrongCount`) — sorted weakest-first (box asc, then wrongCount desc), full question text with the ✓-marked answer and explanation, per-entry box/wrong-count line, and a due-now vs scheduled split. Reuses the AIP-052 print system as-is (`print-sheet` white paper block, `no-print` control bar, `avoid-break`, the `@media print` block in `main.scss`); entry link on the interactive `WeakSpotsView` + an empty state when nothing is enrolled. Closes the loop: the app already knows what the learner keeps getting wrong — this prints exactly that. *IN REVIEW — PR #14.*
+*(none — pick from the backlog hints below or open a new ticket)*
 
 ## 🪜 Suggested next moves (backlog hints)
 
@@ -108,6 +108,7 @@ These are not commitments — they're directions the architecture is set up to a
 
 ## ✅ Completed Tickets (all sprints)
 
+- **AIP-053** — Parent personalized weak-spots cram sheet (PR #14, merged 2026-08-06): `/practice?print=1` prints the learner's enrolled Leitner entries weakest-first (box asc, then wrongCount desc), split due-now vs scheduled (`due in …` labels), each with box/wrong-count meta, full question, ✓-marked answer, explanation; 'Cram sheet ⎙' entry link on interactive `/practice`, empty state on the sheet. Zero CSS changes — AIP-052 print system reused verbatim.
 - **AIP-052** — Parent per-domain print study sheets (PR #13, merged 2026-08-06): `/domains/:id?print=1` white-paper sheet (domain header, patterns with taskRef + ✗ failure modes, ✓-marked quiz answers), `@media print` block in `main.scss` (no-print sidebar, avoid-break), entry links on `DomainView` + index cards; plus drift fix — `linkedQuestions` = union of `relatedQuiz` + pattern `quizQuestionRefs` (3 missing questions restored).
 - **AIP-051** — exam-scenarios-atlas v0.4.0 adaptive drill (PR #11, merged 2026-08-06): weak-spot-weighted runs, accuracy breakdown + chips at points of action, focused runs (`/drill?scenario=n`), quit + forget-history controls. Hardened against corrupt localStorage in a pre-merge edge-case pass (2 real bugs fixed); sampling behaviour guarded offline by `npm run check:drill`.
 - **AIP-050** — `derivates/exam-scenarios-atlas` built out v0.1 → v0.3 (PRs #8–#10, all merged 2026-08-05): scenario-first atlas with all 6 scenarios + 12 exam-guide sample questions, `/drill` recognition mode, parent reverse-links, `/matrix`, 12 anti-pattern foil pairs, print study sheets. PROJECT_PLAN §8 roadmap fully shipped.
@@ -194,6 +195,7 @@ These are not commitments — they're directions the architecture is set up to a
 - 2026-08-06: AIP-052 polish (2nd feature commit on PR #13): `linkedQuestions` = deduped union of domain `relatedQuiz` + per-pattern `quizQuestionRefs` — a data-drift audit found 3 pattern-referenced questions missing from the domain lists (d1: s1:15 + s2:2; d4: s2:8), so both the related-questions section and the study sheet were undercounting; d1 sheet now renders 9 question blocks (was 7). Domains index cards got 'Study sheet ⎙' shortcuts (button + programmatic push — nested anchors get re-parented). AIP-053 opened: personalized weak-spots cram sheet (`/practice?print=1`).
 - 2026-08-06: PR #13 ff-merged (4 commits: sheet → status → polish → AIP-053 open); AIP-052 closed, branch pruned. Next session starts with AIP-053. Session finalized.
 - 2026-08-06: AIP-053 built (PR #14): `/practice?print=1` personalized weak-spots cram sheet — the learner's enrolled Leitner entries weakest-first (box asc, then wrongCount desc), split due-now vs scheduled (scheduled entries get a `due in …` label), each with box/wrong-count meta, full question, ✓-marked answer, explanation; 'Cram sheet ⎙' entry link on interactive `/practice` (hidden when nothing enrolled), empty state on the sheet. Zero CSS changes — AIP-052's print system reused verbatim. Verified: vue-tsc + build clean; 18-check CDP run over the preview build with seeded `aip:weak-spots:v1` (4 entries across boxes/due states) incl. ordering, group counts, due-in labels, empty-state and link-visibility both ways — all green. Gotcha for future sheet checks: `sheet-h` is CSS-uppercased and `innerText` returns rendered text — assert case-insensitively.
+- 2026-08-06: PR #14 ff-merged (2 commits: sheet → status); AIP-053 closed, branch pruned. No ticket queued — next session picks from the backlog hints. Session finalized.
 
 ---
 *Maintained by ProtoGear Agent Framework*
