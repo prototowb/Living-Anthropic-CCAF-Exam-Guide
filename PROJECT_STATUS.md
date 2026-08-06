@@ -95,19 +95,20 @@ bundle:   "≈ 105 kB JS gzipped, ≈ 40 kB CSS gzipped (route-level lazy chunks
 
 ## 🎫 Active Tickets
 
-- **AIP-051** — `derivates/exam-scenarios-atlas` v0.4: **adaptive drill**. "Drill weak spots" run mode (weighted sampling without replacement, `weight = 1 + 3·(1 − accuracy)`, unseen = 4, logic in `src/data/drill.ts` so it's node-testable), per-scenario/per-domain accuracy breakdown on the idle screen, per-scenario focused runs (`/drill?scenario=n`, linked from scenario pages), quit control mid-run. Persistence shape unchanged. *IN REVIEW — PR open.*
+- **AIP-052** — **Parent: print-friendly per-domain study sheet** (promoted from the backlog hints; **planned as the first item of the next session**). `/domains/:id?print=1` renders a condensed printable layout, mirroring the pattern shipped in the atlas's v0.3 (`derivates/exam-scenarios-atlas/src/views/ScenarioView.vue` print branch + its `@media print` block in `src/styles/main.css`): domain title/subtitle, each pattern with its `taskRef`, summary and one-line anti-pattern failure mode, linked quiz-question references with answers marked, `no-print` chrome (the parent's sidebar/app shell), an `avoid-break` class on repeating blocks, and a "Study sheet ⎙" entry link on the interactive `DomainView`. Verify per the CDP recipe (hash routing: `/#/domains/d1?print=1` — note the parent puts query *inside* the hash). *PLANNED.*
 
 ## 🪜 Suggested next moves (backlog hints)
 
 These are not commitments — they're directions the architecture is set up to accept cheaply.
 
-- **Print-friendly per-domain study sheet** — `/domains/:id?print=1` view with `@media print` styles.
+- ~~Print-friendly per-domain study sheet~~ — promoted to ticket **AIP-052**.
 - **Tests.** No test suite yet — **explicitly on hold per project owner (2026-08-05)**. If/when resumed: Vitest + Vue Test Utils for stores + lesson components first; the views are mostly composition and probably aren't where bugs hide.
 - **Real-mode CI review** — the repo-root claude-review workflow runs in dry-run mode; adding the `ANTHROPIC_API_KEY` secret (+ optional `CLAUDE_REVIEW_MONTHLY_BUDGET_USD` variable) switches it to live two-pass Claude reviews.
 - **Companion manual verification** — WebLLM ~2 GB download + first message; a live Ollama/LM Studio turn.
 
 ## ✅ Completed Tickets (all sprints)
 
+- **AIP-051** — exam-scenarios-atlas v0.4.0 adaptive drill (PR #11, merged 2026-08-06): weak-spot-weighted runs, accuracy breakdown + chips at points of action, focused runs (`/drill?scenario=n`), quit + forget-history controls. Hardened against corrupt localStorage in a pre-merge edge-case pass (2 real bugs fixed); sampling behaviour guarded offline by `npm run check:drill`.
 - **AIP-050** — `derivates/exam-scenarios-atlas` built out v0.1 → v0.3 (PRs #8–#10, all merged 2026-08-05): scenario-first atlas with all 6 scenarios + 12 exam-guide sample questions, `/drill` recognition mode, parent reverse-links, `/matrix`, 12 anti-pattern foil pairs, print study sheets. PROJECT_PLAN §8 roadmap fully shipped.
 - **INIT-001** — Proto Gear Agent Framework integrated
 - **AIP-001** — Vite + Vue 3 + TS scaffold (Pinia, vue-router, Tailwind, SCSS+BEM)
@@ -187,6 +188,7 @@ These are not commitments — they're directions the architecture is set up to a
 - 2026-08-05: exam-scenarios-atlas v0.3 merged (PR #10); AIP-050 closed (roadmap v0.1–v0.3 fully shipped). AIP-051 opened and built: v0.4.0 adaptive drill — weak-spot-weighted runs, accuracy breakdown, `?scenario=n` focused runs, mid-run quit. Weighting verified statistically node-side (5k orderings: weak items avg position 3.7 vs 9.1; flat weights uniform) + 5-check CDP browser test.
 - 2026-08-06: v0.4 edge-case hardening (pre-merge review of PR #11). Two real bugs found and fixed: (1) valid-JSON-wrong-shape localStorage (e.g. missing `byScenario`) blanked the whole drill page — stats are now rebuilt field-by-field via `normalizeStats()` on load; (2) poisoned buckets (correct > attempts, non-numeric) produced negative/NaN sampling weights — `itemWeight` now clamps to [1, 4] and treats unparseable buckets as unseen. Checks made durable as `npm run check:drill` (statistical bias + corruption safety, offline). Verified: 11 node checks, 10 browser edge checks (partial/poisoned stats, invalid `?scenario=` values, option spam, quit/restart, focused-run completion), 5-check regression — all green. Also caught during testing: a stale preview server was serving the parent app on the atlas port — invalidated one test round before detection.
 - 2026-08-06: v0.4 stats-loop closure (third commit on PR #11): breakdown scenario rows link to focused runs, "forget my drill history" (two-step confirm → `clearStats()`), run-complete screen offers "Drill weak spots" directly, accuracy chips on scenario-page drill links + home tile (`accuracyFor` getter). 6 new browser checks + full regression (10 edge + 5 smoke + 11 node) green.
+- 2026-08-06: PR #11 ff-merged (atlas v0.4.0 complete, 3 commits: adaptive drill → corruption hardening → stats-loop closure); AIP-051 closed, branch pruned. AIP-052 opened for next session: parent print-friendly per-domain study sheet (`/domains/:id?print=1`), transferring the atlas v0.3 print pattern. Session finalized.
 
 ---
 *Maintained by ProtoGear Agent Framework*
