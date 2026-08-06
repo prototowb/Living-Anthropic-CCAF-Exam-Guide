@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import { useDrillStore } from '../stores/drill'
 import { SCENARIOS, scenarioByNumber } from '../data/scenarios'
@@ -26,13 +26,27 @@ const breakdown = computed(() => [
     tag: `S${s.number}`,
     title: s.title,
     acc: bucketAccuracy(drill.stats.byScenario[s.number]),
+    // Scenario rows open a focused run; domain rows have no focused mode.
+    to: { name: 'drill', query: { scenario: String(s.number) } },
   })),
   ...DOMAINS.map((d) => ({
     tag: `D${d.id}`,
     title: d.title,
     acc: bucketAccuracy(drill.stats.byDomain[d.id]),
+    to: null,
   })),
 ])
+
+/** Two-step confirm for wiping history. */
+const confirmingForget = ref(false)
+function forget() {
+  if (!confirmingForget.value) {
+    confirmingForget.value = true
+    return
+  }
+  confirmingForget.value = false
+  drill.clearStats()
+}
 
 const focusLabel = computed(() => {
   if (drill.focus === 'weak') return 'weak spots'
@@ -158,25 +172,45 @@ const reviewRows = computed(() =>
       <section v-if="drill.stats.attempts > 0" class="frame p-5 space-y-3">
         <h2 class="section-h mb-1">Where you stand</h2>
         <ul class="grid sm:grid-cols-2 gap-x-8 gap-y-1.5">
-          <li v-for="b in breakdown" :key="b.tag" class="flex items-center gap-2 text-[12.5px]">
-            <span class="font-mono w-7 text-ink-400">{{ b.tag }}</span>
-            <span class="flex-1 text-ink-600 truncate">{{ b.title }}</span>
-            <span class="w-20 h-1.5 rounded bg-ink-100 overflow-hidden">
-              <span
-                v-if="b.acc !== null"
-                class="block h-full rounded"
-                :class="b.acc >= 70 ? 'bg-domain-3' : 'bg-accent'"
-                :style="{ width: b.acc + '%' }"
-              ></span>
-            </span>
-            <span class="font-mono w-10 text-right" :class="b.acc === null ? 'text-ink-300' : 'text-ink-700'">
-              {{ b.acc === null ? '—' : b.acc + '%' }}
-            </span>
+          <li v-for="b in breakdown" :key="b.tag" class="text-[12.5px]">
+            <component
+              :is="b.to ? RouterLink : 'div'"
+              :to="b.to ?? undefined"
+              class="flex items-center gap-2 no-underline rounded px-1 -mx-1"
+              :class="b.to ? 'hover:bg-ink-50' : ''"
+              :title="b.to ? `Focused run on ${b.tag}` : undefined"
+            >
+              <span class="font-mono w-7 text-ink-400">{{ b.tag }}</span>
+              <span class="flex-1 text-ink-600 truncate">{{ b.title }}</span>
+              <span class="w-20 h-1.5 rounded bg-ink-100 overflow-hidden">
+                <span
+                  v-if="b.acc !== null"
+                  class="block h-full rounded"
+                  :class="b.acc >= 70 ? 'bg-domain-3' : 'bg-accent'"
+                  :style="{ width: b.acc + '%' }"
+                ></span>
+              </span>
+              <span class="font-mono w-10 text-right" :class="b.acc === null ? 'text-ink-300' : 'text-ink-700'">
+                {{ b.acc === null ? '—' : b.acc + '%' }}
+              </span>
+            </component>
           </li>
         </ul>
-        <p class="text-[11.5px] text-ink-400">
-          "Drill weak spots" weights the run toward the rows with low or missing accuracy.
-        </p>
+        <div class="flex items-center justify-between gap-3">
+          <p class="text-[11.5px] text-ink-400">
+            "Drill weak spots" weights the run toward the rows with low or missing accuracy.
+            Scenario rows open a focused run.
+          </p>
+          <button
+            type="button"
+            class="text-[11.5px] shrink-0"
+            :class="confirmingForget ? 'text-accent-ink font-medium' : 'text-ink-400 hover:text-ink-700'"
+            @click="forget"
+            @blur="confirmingForget = false"
+          >
+            {{ confirmingForget ? 'Really forget all history?' : 'Forget my drill history' }}
+          </button>
+        </div>
       </section>
 
       <p class="text-[12px] text-ink-400 max-w-prose">
@@ -296,6 +330,14 @@ const reviewRows = computed(() =>
         <button
           type="button"
           class="px-4 py-2 rounded-md bg-ink-800 text-ink-50 text-sm font-medium hover:bg-ink-700"
+          @click="drill.startRun('weak')"
+          title="Weighted toward the scenarios and domains you get wrong"
+        >
+          Drill weak spots
+        </button>
+        <button
+          type="button"
+          class="px-4 py-2 rounded-md border border-ink-200 text-ink-600 text-sm hover:bg-ink-50"
           @click="drill.startRun()"
         >
           Run again

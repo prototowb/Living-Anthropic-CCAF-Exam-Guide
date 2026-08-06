@@ -116,6 +116,14 @@ export const useDrillStore = defineStore('drill', {
         ? null
         : Math.round((100 * state.stats.correct) / state.stats.attempts)
     },
+    /** Per-bucket accuracy in percent, or null when unseen. */
+    accuracyFor(state): (ask: 'scenario' | 'domain', id: number) => number | null {
+      return (ask, id) => {
+        const bucket = ask === 'scenario' ? state.stats.byScenario[id] : state.stats.byDomain[id]
+        if (!bucket || bucket.attempts === 0) return null
+        return Math.round((100 * bucket.correct) / bucket.attempts)
+      }
+    },
   },
 
   actions: {
@@ -171,6 +179,13 @@ export const useDrillStore = defineStore('drill', {
     },
 
     reset() {
+      this.phase = 'idle'
+    },
+
+    /** Wipe all persisted drill history (the view asks for confirmation first). */
+    clearStats() {
+      this.stats = emptyStats()
+      save(KEY, this.stats)
       this.phase = 'idle'
     },
   },

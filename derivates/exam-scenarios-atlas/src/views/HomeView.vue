@@ -3,7 +3,10 @@ import { RouterLink } from 'vue-router'
 import { SCENARIOS } from '../data/scenarios'
 import { DOMAINS } from '../data/domains'
 import { DRILL_ITEMS } from '../data/drill'
+import { useDrillStore } from '../stores/drill'
 import DomainBadge from '../components/DomainBadge.vue'
+
+const drill = useDrillStore()
 </script>
 
 <template>
@@ -54,12 +57,20 @@ import DomainBadge from '../components/DomainBadge.vue'
           {{ DRILL_ITEMS.length }} authored fragments — requirements, log excerpts, stakeholder quotes.
         </p>
       </div>
-      <RouterLink
-        to="/drill"
-        class="px-4 py-2 rounded-md bg-ink-800 text-ink-50 text-sm font-medium hover:bg-ink-700 no-underline"
-      >
-        Start drilling →
-      </RouterLink>
+      <div class="flex items-center gap-4">
+        <div v-if="drill.accuracy !== null" class="text-right">
+          <div class="text-[11px] uppercase tracking-wider text-ink-400 font-medium">Accuracy</div>
+          <div class="font-mono text-lg" :class="drill.accuracy >= 70 ? 'text-domain-3' : 'text-accent-ink'">
+            {{ drill.accuracy }}%
+          </div>
+        </div>
+        <RouterLink
+          to="/drill"
+          class="px-4 py-2 rounded-md bg-ink-800 text-ink-50 text-sm font-medium hover:bg-ink-700 no-underline"
+        >
+          Start drilling →
+        </RouterLink>
+      </div>
     </section>
 
     <section class="frame p-6 flex flex-wrap items-center gap-4">

@@ -8,11 +8,16 @@ import CodeExample from '../components/CodeExample.vue'
 import QandA from '../components/QandA.vue'
 import DomainBadge from '../components/DomainBadge.vue'
 import AntiPatternFoil from '../components/AntiPatternFoil.vue'
+import { useDrillStore } from '../stores/drill'
 
 const route = useRoute()
+const drill = useDrillStore()
 const id = computed(() => String(route.params.id))
 const scenario = computed(() => scenarioById(id.value))
 const printMode = computed(() => route.query.print === '1')
+const drillAccuracy = computed(() =>
+  scenario.value ? drill.accuracyFor('scenario', scenario.value.number) : null,
+)
 
 function printPage() {
   window.print()
@@ -130,7 +135,13 @@ const prev = computed(() => {
           :to="{ name: 'drill', query: { scenario: String(scenario.number) } }"
           class="no-underline hover:text-ink-700"
         >
-          Drill this scenario
+          Drill this scenario<template v-if="drillAccuracy !== null"
+            > · <span
+              class="font-mono"
+              :class="drillAccuracy >= 70 ? 'text-domain-3' : 'text-accent-ink'"
+              >{{ drillAccuracy }}%</span
+            ></template
+          >
         </RouterLink>
         <span>·</span>
         <RouterLink
