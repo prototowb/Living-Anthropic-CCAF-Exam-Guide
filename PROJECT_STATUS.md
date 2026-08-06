@@ -95,9 +95,9 @@ bundle:   "≈ 105 kB JS gzipped, ≈ 40 kB CSS gzipped (route-level lazy chunks
 
 ## 🎫 Active Tickets
 
-### AIP-054 — Bootstrap test suite (Vitest + Vue Test Utils) 🔨 IN_PROGRESS
+### AIP-054 — Bootstrap test suite (Vitest + Vue Test Utils) 👀 IN_REVIEW (PR #15)
 
-- **Type**: feature · **Branch**: `feature/AIP-054-test-suite`
+- **Type**: feature · **Branch**: `feature/AIP-054-test-suite` · **PR**: [#15](https://github.com/prototowb/Living-Anthropic-CCAF-Exam-Guide/pull/15)
 - **Scope** (per the resumed backlog hint — test-suite hold lifted by project owner 2026-08-06, code-freeze):
   - Vitest + @vue/test-utils + happy-dom wired into `vite.config.ts` (shared `@` alias), `npm test` / `npm run test:run` scripts.
   - Store unit tests first: `persist`, `quiz`, `weakSpots` (Leitner promote/demote/reschedule), `mockExam` (lifecycle, scoring, history cap, quiz sync), `lesson`.
