@@ -95,15 +95,7 @@ bundle:   "≈ 105 kB JS gzipped, ≈ 40 kB CSS gzipped (route-level lazy chunks
 
 ## 🎫 Active Tickets
 
-### AIP-054 — Bootstrap test suite (Vitest + Vue Test Utils) 👀 IN_REVIEW (PR #15)
-
-- **Type**: feature · **Branch**: `feature/AIP-054-test-suite` · **PR**: [#15](https://github.com/prototowb/Living-Anthropic-CCAF-Exam-Guide/pull/15)
-- **Scope** (per the resumed backlog hint — test-suite hold lifted by project owner 2026-08-06, code-freeze):
-  - Vitest + @vue/test-utils + happy-dom wired into `vite.config.ts` (shared `@` alias), `npm test` / `npm run test:run` scripts.
-  - Store unit tests first: `persist`, `quiz`, `weakSpots` (Leitner promote/demote/reschedule), `mockExam` (lifecycle, scoring, history cap, quiz sync), `lesson`.
-  - Lesson component tests: `ReorderLesson`, `BlanksLesson`, `McqLesson`, `FlowBuilderLesson` — interaction + `complete` emit contracts.
-  - Views stay untested for now (mostly composition; not where bugs hide).
-- **Acceptance**: all tests green · typecheck + build stay green · PROJECT_STATUS quality table updated.
+*(none — pick from the backlog hints below or open a new ticket)*
 
 ## 🪜 Suggested next moves (backlog hints)
 
@@ -116,6 +108,7 @@ These are not commitments — they're directions the architecture is set up to a
 
 ## ✅ Completed Tickets (all sprints)
 
+- **AIP-054** — Test suite bootstrapped (PR #15, merged 2026-08-06): Vitest 4 + @vue/test-utils + happy-dom; 53 tests / 9 files — 5 Pinia stores (persistence round-trips + corrupt fallbacks, Leitner promote/demote/setSchedule-reschedule, mock-exam lifecycle/scoring/history-cap/quiz-sync) + 4 lesson components (interaction + `complete`/`next` emit contracts; deterministic shuffle via mocked Math.random). `npm test` / `npm run test:run`; tests typechecked via `tsconfig.app.json`. Views intentionally untested.
 - **AIP-053** — Parent personalized weak-spots cram sheet (PR #14, merged 2026-08-06): `/practice?print=1` prints the learner's enrolled Leitner entries weakest-first (box asc, then wrongCount desc), split due-now vs scheduled (`due in …` labels), each with box/wrong-count meta, full question, ✓-marked answer, explanation; 'Cram sheet ⎙' entry link on interactive `/practice`, empty state on the sheet. Zero CSS changes — AIP-052 print system reused verbatim.
 - **AIP-052** — Parent per-domain print study sheets (PR #13, merged 2026-08-06): `/domains/:id?print=1` white-paper sheet (domain header, patterns with taskRef + ✗ failure modes, ✓-marked quiz answers), `@media print` block in `main.scss` (no-print sidebar, avoid-break), entry links on `DomainView` + index cards; plus drift fix — `linkedQuestions` = union of `relatedQuiz` + pattern `quizQuestionRefs` (3 missing questions restored).
 - **AIP-051** — exam-scenarios-atlas v0.4.0 adaptive drill (PR #11, merged 2026-08-06): weak-spot-weighted runs, accuracy breakdown + chips at points of action, focused runs (`/drill?scenario=n`), quit + forget-history controls. Hardened against corrupt localStorage in a pre-merge edge-case pass (2 real bugs fixed); sampling behaviour guarded offline by `npm run check:drill`.
@@ -205,6 +198,7 @@ These are not commitments — they're directions the architecture is set up to a
 - 2026-08-06: AIP-053 built (PR #14): `/practice?print=1` personalized weak-spots cram sheet — the learner's enrolled Leitner entries weakest-first (box asc, then wrongCount desc), split due-now vs scheduled (scheduled entries get a `due in …` label), each with box/wrong-count meta, full question, ✓-marked answer, explanation; 'Cram sheet ⎙' entry link on interactive `/practice` (hidden when nothing enrolled), empty state on the sheet. Zero CSS changes — AIP-052's print system reused verbatim. Verified: vue-tsc + build clean; 18-check CDP run over the preview build with seeded `aip:weak-spots:v1` (4 entries across boxes/due states) incl. ordering, group counts, due-in labels, empty-state and link-visibility both ways — all green. Gotcha for future sheet checks: `sheet-h` is CSS-uppercased and `innerText` returns rendered text — assert case-insensitively.
 - 2026-08-06: PR #14 ff-merged (2 commits: sheet → status); AIP-053 closed, branch pruned. No ticket queued — next session picks from the backlog hints. Session finalized.
 - 2026-08-06: AIP-054 — test-suite hold lifted by project owner (code-freeze). Vitest 4 + @vue/test-utils + happy-dom wired into `vite.config.ts` (`defineConfig` now imported from `vitest/config` — the `/// <reference types="vitest/config" />` route fails `vue-tsc -b` under Vitest 4); `npm test` / `npm run test:run`; `tests/**` included in `tsconfig.app.json` so typecheck covers them. 53 tests / 9 files: stores (`persist`, `quiz`, `weakSpots` incl. Leitner promote/demote/setSchedule-reschedule + corrupt-payload fallbacks, `mockExam` incl. scoring/history-cap/quiz-sync/timeout-clamp, `lesson`) + lesson components (`Mcq`, `Reorder` via Math.random=0 deterministic shuffle, `Blanks`, `FlowBuilder` on real flow data with RouterLinkStub). Gotchas encoded in tests: Pinia getters cache Date.now()-dependent values (read once per test, after setting the clock); lesson components populate state in `onMounted` (await a tick before asserting).
+- 2026-08-06: PR #15 ff-merged (2 commits: suite → status); AIP-054 closed, branch pruned. Session finalized.
 
 ---
 *Maintained by ProtoGear Agent Framework*
